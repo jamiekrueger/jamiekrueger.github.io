@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const embedId = localStorage.getItem('lucidEmbedId')
     const clientId = localStorage.getItem('lucidEmbedClientId')
     const clientSecret = localStorage.getItem('lucidEmbedClientSecret')
-    const redirectUri = localStorage.getItem('lucidEmbedRedirectUri')
+    const redirectUri = localStorage.getItem('lucidEmbedClientRedirectUri')
     const authCode = localStorage.getItem('lucidEmbedAuthCode')
 
     if (clientId && clientSecret && redirectUri && authCode) {
