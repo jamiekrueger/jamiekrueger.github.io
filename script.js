@@ -29,13 +29,20 @@ createEmbedSessionBtn.addEventListener('click', () => {
     window.location.href = authUrl
 })
 
-// On page load, check if there is an existing embed to load
+// On page load, check if there is an existing embed id to load
 document.addEventListener("DOMContentLoaded", function() {
-    // BAD EXAMPLE: Local Storage is a client-side cache, which means other visitors cannot access this embed session.
-    // You should instead store the session token somewhere safe and persistable in your app so it can be used by all visitors.
-    const sessionToken = localStorage.getItem('lucidEmbedSessionToken')
-    if (sessionToken) {
-        console.log(`Using stored embed session: ${sessionToken}`)
+    const embedId = localStorage.getItem('lucidEmbedId')
+    const clientId = localStorage.getItem('lucidClientId')
+    const clientSecret = localStorage.getItem('lucidClientSecret')
+    const redirectUri = localStorage.getItem('lucidRedirectUri')
+    const authCode = localStorage.getItem('lucidAuthCode')
+
+    if (clientId && clientSecret && redirectUri && authCode) {
+        console.log(`Using stored embed Id: ${embedId}`)
+        const accessToken = fetchAccessToken(clientId, clientSecret, redirectUri, authCode)
+        if (!accessToken) return
+        const sessionToken = fetchSessionToken(accessToken, embedId)
+        if (!sessionToken) return
         updateIframeSrc(sessionToken)
 
         // Hide the form and show the reset button
@@ -43,6 +50,63 @@ document.addEventListener("DOMContentLoaded", function() {
         resetContainer.classList.remove('hidden')
     }
 })
+
+async function fetchSessionToken(accessToken, embedId) {
+    try {
+        const response = await fetch( 'https://api.lucid.app/embeds/token', { 
+            method: 'POST', 
+            headers: new Headers(
+                { 
+                    "Content-Type": "application/json",
+                    "Lucid-Api-Version": 1,
+                    "Authorization": `Bearer ${accessToken}`}) ,
+            body: JSON.stringify({
+                origin: 'https://jamiekrueger.dev',
+                embedId: embedId
+            })
+        })
+
+        const sessionToken = await response.text()
+        if (sessionToken) {
+            console.log('Lucid Embed Session Token:', sessionToken)
+            localStorage.setItem('lucidEmbedSessionToken', sessionToken) //do i need to store this?
+            return sessionToken
+        } else {
+            console.error('No session token found in the response.')
+        }
+    } catch (error) {
+        console.error('Error creating embed session token:', error)
+    }
+}
+
+async function fetchAccessToken(clientId, clientSecret, redirectUri, authCode) {
+    try {
+        const response = await fetch( 'https://api.lucid.app/oauth2/token', { 
+            method: 'POST', 
+            headers: new Headers({ 
+                "Content-Type": "application/json"
+            }) ,
+            body: JSON.stringify({ 
+                client_id: clientId,
+                client_secret: clientSecret,
+                redirect_uri: redirectUri,
+                grant_type: 'authorization_code',
+                code: authCode
+            })
+        })
+        const data = await response.json()
+        const accessToken = data.access_token
+        if (accessToken) {
+            console.log('Access Token:', accessToken)
+            localStorage.setItem('lucidEmbedAccessToken', accessToken)
+            return accessToken
+        } else {
+            console.error('No access token found in the response:', data)
+        }
+    } catch (error) {
+        console.error('Error creating access token:', error)
+    }
+}
 
 // Embed Lucid in your app
 function updateIframeSrc(sessionToken) {
@@ -55,17 +119,25 @@ function updateIframeSrc(sessionToken) {
 
 // Listen for postMessage events from the iframe
 window.addEventListener('message', (event) => {
-    // Make sure the message is from the Lucidchart iframe
-    console.log('GOT A MESSAGE EVENT:')
-    console.log(event.origin)
-    console.log(event.type)
-    console.log(event.data)
-    
-
-    // TODO: Get the embed id
-    // Use the embed id to generate new session token and store it 
-
-    //if the message is that the session token is invalid/expired, figure out how to refresh the session
+    if (event.origin === "https://lucid.app") {
+        if (event.type === 'LucidEmbedEvent') {
+            if (event.event === 'EmbedCreated') {
+                const embedId = event.embedId
+                if (!embedId) {
+                    console.error('No embed Id found in the EmbedCreated event.')
+                    return
+                }
+                console.log(`Embed Created with id: ${event.embedId}`)
+                localStorage.setItem('lucidEmbedId', embedId)
+            }
+        } else {
+            console.log('GOT SOME OTHER LUCID MESSAGE EVENT:')
+            console.log(event.origin)
+            console.log(event.type)
+            console.log(event.data)
+            //if the message is that the session token is invalid/expired, figure out how to refresh the session
+        }
+    }
 })
 
 resetFormBtn.addEventListener('click', () => {
