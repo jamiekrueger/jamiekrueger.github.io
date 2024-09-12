@@ -64,6 +64,8 @@ window.addEventListener('message', (event) => {
 
     // TODO: Get the embed id
     // Use the embed id to generate new session token and store it 
+
+    //if the message is that the session token is invalid/expired, figure out how to refresh the session
 })
 
 resetFormBtn.addEventListener('click', () => {

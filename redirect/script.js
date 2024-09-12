@@ -58,7 +58,7 @@ async function fetchEmbedSessionToken(accessToken) {
                     "Content-Type": "application/json",
                     "Lucid-Api-Version": 1,
                     "Authorization": `Bearer ${accessToken}`}) ,
-            body: JSON.stringify({ origin: 'jamiekrueger.dev' })
+            body: JSON.stringify({ origin: 'https://jamiekrueger.dev' })
         })
 
         const sessionToken = await response.text()
