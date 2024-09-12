@@ -52,6 +52,14 @@ document.addEventListener("DOMContentLoaded", function() {
 })
 
 async function fetchSessionToken(accessToken, embedId) {
+    let body = {
+        origin: 'https://jamiekrueger.dev',
+    }
+
+    if (embedId) {
+        body = {...body, embedId: embedId}
+    }
+
     try {
         const response = await fetch( 'https://api.lucid.app/embeds/token', { 
             method: 'POST', 
@@ -60,10 +68,7 @@ async function fetchSessionToken(accessToken, embedId) {
                     "Content-Type": "application/json",
                     "Lucid-Api-Version": 1,
                     "Authorization": `Bearer ${accessToken}`}) ,
-            body: JSON.stringify({
-                origin: 'https://jamiekrueger.dev',
-                embedId: embedId
-            })
+            body: JSON.stringify(body)
         })
 
         const sessionToken = await response.text()
