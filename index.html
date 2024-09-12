@@ -5,83 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>jamiekrueger.dev</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
-<header class="bg-blue-500 text-white py-4">
-    <div class="container mx-auto flex justify-between items-center px-4">
-        <h1 class="text-2xl font-semibold">jamiekrueger.dev</h1>
-        <nav>
-            <ul class="flex space-x-4">
-                <li><a href="#about">About</a></li>
-                <li><a href="#projects">Projects</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </div>
-</header>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <header class="bg-blue-500 text-white py-4">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <h1 class="text-2xl font-semibold">jamiekrueger.dev</h1>
+        </div>
+    </header>
 
-<main class="container mx-auto py-8">
-    <section id="about" class="mb-12">
-        <h2 class="text-3xl font-semibold mb-4">About Me</h2>
-        <div class="flex items-center mb-4">
-            <div class="mr-4">
-                <canvas id="canvas" width="300" height="300" style="border:1px solid #000;"></canvas>
-            </div>
-            <div>
-                <button id="colorRed" class="bg-red-500 text-white px-4 py-2 rounded-lg mr-2">Red</button>
-                <button id="colorBlue" class="bg-blue-500 text-white px-4 py-2 rounded-lg mr-2">Blue</button>
-                <button id="colorGreen" class="bg-green-500 text-white px-4 py-2 rounded-lg mr-2">Green</button>
-                <button id="eraser" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Eraser</button>
-                <button id="reset" class="bg-gray-500 text-white px-4 py-2 rounded-lg">Reset</button>
+    <main class="container mx-auto py-8 flex-grow">
+        <div  id="form-container" class="bg-white shadow-lg rounded-lg p-6">
+            <h1 class="text-3xl font-bold text-gray-700 mb-6">Editable Lucidchart Diagram Embed</h1>
+            
+            <!-- Input fields for Client ID, Client Secret, Redirect URI -->
+            <div class="space-y-4">
+                <div class="input-group">
+                    <label for="clientId" class="block text-sm font-medium text-gray-700">Client ID:</label>
+                    <input type="text" id="clientId" placeholder="Enter your client ID" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+                
+                <div class="input-group">
+                    <label for="clientSecret" class="block text-sm font-medium text-gray-700">Client Secret:</label>
+                    <input type="text" id="clientSecret" placeholder="Enter your client secret" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
+
+                <!-- Warning message -->
+                <div class="text-red-600 text-sm font-medium mt-2">
+                    ⚠️ This is for testing purposes only. 
+                    This is a static site. Typically, your credentials should be stored securely in an application. 
+                    Your credentials will be stored in Local Storage and you will be able to reset the embed and clear this cache. 
+                </div>
+    
+                <button id="createEmbedSession" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Create Embed Session</button>
             </div>
         </div>
-    </section>
 
-    <section id="projects" class="mb-12">
-        <h2 class="text-3xl font-semibold mb-4">Projects</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="bg-white p-4 shadow-md rounded-lg project-card">
-                <h3 class="text-xl font-semibold mb-2">Project 1</h3>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-            </div>
-            <div class="bg-white p-4 shadow-md rounded-lg project-card">
-                <h3 class="text-xl font-semibold mb-2">Project 2</h3>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-            </div>
-            <div class="bg-white p-4 shadow-md rounded-lg project-card">
-                <h3 class="text-xl font-semibold mb-2">Project 3</h3>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-            </div>
+        <!-- Reset button -->
+        <div id="reset-container" class="hidden bg-white shadow-lg rounded-lg p-6">
+            <h1 class="text-3xl font-bold text-gray-700 mb-6">Session Created</h1>
+            <p class="text-gray-700 mb-4">Your Lucidchart embed session has been created successfully.</p>
+            <button id="resetForm" class="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">Reset</button>
         </div>
-    </section>
 
-    <section id="contact">
-        <h2 class="text-3xl font-semibold mb-4">Contact Me</h2>
-        <form class="max-w-md">
-            <div class="mb-4">
-                <label for="name" class="block">Name</label>
-                <input type="text" id="name" name="name" class="w-full px-4 py-2 rounded-lg border" placeholder="Your name">
-            </div>
-            <div class="mb-4">
-                <label for="email" class="block">Email</label>
-                <input type="email" id="email" name="email" class="w-full px-4 py-2 rounded-lg border" placeholder="Your email">
-            </div>
-            <div class="mb-4">
-                <label for="message" class="block">Message</label>
-                <textarea id="message" name="message" class="w-full px-4 py-2 rounded-lg border" rows="4" placeholder="Your message"></textarea>
-            </div>
-            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">Send Message</button>
-        </form>
-    </section>
-</main>
+        <!-- iFrame -->
+        <div class="mt-8">
+            <iframe id="lucidchart-frame" class="w-full h-96 rounded-md border border-gray-300 shadow-md"></iframe>
+        </div>
+    </main>
 
-<footer class="bg-gray-800 text-white py-4">
-    <div class="container mx-auto text-center">
-        <p>&copy; 2024 My Portfolio. All rights reserved.</p>
-    </div>
-</footer>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

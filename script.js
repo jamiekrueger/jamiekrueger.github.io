@@ -1,44 +1,77 @@
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-let isDrawing = false;
-let lastX = 0;
-let lastY = 0;
-let hue = 0;
-let color = 'black';
-const img = new Image();
-img.src = 'me.png';
+const formContainer = document.getElementById('form-container')
+const clientIdInput = document.getElementById('clientId')
+const clientSecretInput = document.getElementById('clientSecret')
+const createEmbedSessionBtn = document.getElementById('createEmbedSession')
+const resetContainer = document.getElementById('reset-container')
+const resetFormBtn = document.getElementById('resetForm')
+const iframe = document.getElementById('lucidchart-frame')
 
-img.onload = function() {
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Draw the image onto the canvas
-};
+// Send the user through the OAuth 2.0 authorization code flow
+createEmbedSessionBtn.addEventListener('click', () => {
+    const clientId = clientIdInput.value
+    const clientSecret = clientSecretInput.value
+    const redirectUri = 'https://jamiekrueger.dev/redirect'
+    const scope = 'lucidchart.document.app.picker.share.embed'
 
-function draw(e) {
-    if (!isDrawing) return;
-    ctx.strokeStyle = color;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+    // Simple validation to ensure inputs are not empty
+    if (!clientId || !clientSecret) {
+        alert('Please fill in all fields.')
+        return
+    }
+
+    const authUrl = `https://lucid.app/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`
+
+    localStorage.setItem('lucidEmbedClientId', clientId)
+    localStorage.setItem('lucidEmbedClientSecret', clientSecret)
+    localStorage.setItem('lucidEmbedClientRedirectUri', redirectUri)
+
+    // Redirect the user to the authorization page
+    window.location.href = authUrl
+})
+
+// On page load, check if there is an existing embed to load
+document.addEventListener("DOMContentLoaded", function() {
+    // BAD EXAMPLE: Local Storage is a client-side cache, which means other visitors cannot access this embed session.
+    // You should instead store the session token somewhere safe and persistable in your app so it can be used by all visitors.
+    const sessionToken = localStorage.getItem('lucidEmbedSessionToken')
+    if (sessionToken) {
+        console.log(`Using stored embed session: ${sessionToken}`)
+        updateIframeSrc(sessionToken)
+
+        // Hide the form and show the reset button
+        formContainer.classList.add('hidden')
+        resetContainer.classList.remove('hidden')
+    }
+})
+
+// Embed Lucid in your app
+function updateIframeSrc(sessionToken) {
+    const iframeSrc = `https://lucid.app/embeds?token=${sessionToken}`
+    iframe.src = iframeSrc
+    console.log("Updated iframe src:", iframeSrc)
+    
+    //TODO: retries and refreshes
 }
 
-canvas.addEventListener('mousedown', (e) => {
-    isDrawing = true;
-    [lastX, lastY] = [e.offsetX, e.offsetY];
-});
+// Listen for postMessage events from the iframe
+window.addEventListener('message', (event) => {
+    // Make sure the message is from the Lucidchart iframe
+    console.log('GOT A MESSAGE EVENT:')
+    console.log(event.origin)
+    console.log(event.type)
+    console.log(event.data)
+    
 
-canvas.addEventListener('mousemove', draw);
-canvas.addEventListener('mouseup', () => isDrawing = false);
-canvas.addEventListener('mouseout', () => isDrawing = false);
+    // TODO: Get the embed id
+    // Use the embed id to generate new session token and store it 
+})
 
-document.getElementById('colorRed').addEventListener('click', () => color = 'red');
-document.getElementById('colorBlue').addEventListener('click', () => color = 'blue');
-document.getElementById('colorGreen').addEventListener('click', () => color = 'green');
-document.getElementById('eraser').addEventListener('click', () => color = 'white');
-document.getElementById('reset').addEventListener('click', () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Redraw the image
-});
+resetFormBtn.addEventListener('click', () => {
+    localStorage.clear()
+
+    iframe.src = ''
+
+    // Hide the reset button and show the form
+    formContainer.classList.remove('hidden')
+    resetContainer.classList.add('hidden')
+})
