@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
     if (authCode) {
         console.log('Authorization Code:', authCode)
-        localStorage.setItem('lucidAuthCode', authCode)
+        localStorage.setItem('lucidEmbedAuthCode', authCode)
     } else {
         console.error('Authorization code not found in URL')
     }

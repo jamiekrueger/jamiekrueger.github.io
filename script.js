@@ -32,10 +32,10 @@ createEmbedSessionBtn.addEventListener('click', () => {
 // On page load, check if there is an existing embed id to load
 document.addEventListener("DOMContentLoaded", function() {
     const embedId = localStorage.getItem('lucidEmbedId')
-    const clientId = localStorage.getItem('lucidClientId')
-    const clientSecret = localStorage.getItem('lucidClientSecret')
-    const redirectUri = localStorage.getItem('lucidRedirectUri')
-    const authCode = localStorage.getItem('lucidAuthCode')
+    const clientId = localStorage.getItem('lucidEmbedClientId')
+    const clientSecret = localStorage.getItem('lucidEmbedClientSecret')
+    const redirectUri = localStorage.getItem('lucidEmbedRedirectUri')
+    const authCode = localStorage.getItem('lucidEmbedAuthCode')
 
     if (clientId && clientSecret && redirectUri && authCode) {
         console.log(`Using stored embed Id: ${embedId}`)
