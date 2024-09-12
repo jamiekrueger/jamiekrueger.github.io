@@ -30,7 +30,7 @@ createEmbedSessionBtn.addEventListener('click', () => {
 })
 
 // On page load, check if there is an existing embed id to load
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", async function() {
     const embedId = localStorage.getItem('lucidEmbedId')
     const clientId = localStorage.getItem('lucidEmbedClientId')
     const clientSecret = localStorage.getItem('lucidEmbedClientSecret')
@@ -38,10 +38,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const authCode = localStorage.getItem('lucidEmbedAuthCode')
 
     if (clientId && clientSecret && redirectUri && authCode) {
-        console.log(`Using stored embed Id: ${embedId}`)
-        const accessToken = fetchAccessToken(clientId, clientSecret, redirectUri, authCode)
+        if (embedId) {
+            console.log(`Using stored embed Id: ${embedId}`)
+        } else {
+            console.log('Creating a new embed session.')
+        }
+        const accessToken = await fetchAccessToken(clientId, clientSecret, redirectUri, authCode)
         if (!accessToken) return
-        const sessionToken = fetchSessionToken(accessToken, embedId)
+        const sessionToken = await fetchSessionToken(accessToken, embedId)
         if (!sessionToken) return
         updateIframeSrc(sessionToken)
 
