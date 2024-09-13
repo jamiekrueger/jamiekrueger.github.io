@@ -129,21 +129,28 @@ function updateIframeSrc(sessionToken) {
 // Listen for postMessage events from the iframe
 window.addEventListener('message', (event) => {
     if (event.origin === "https://lucid.app") {
+        console.log(event)
+        console.log(event.origin)
+        console.log(event.type)
+        console.log(event.data)
+        console.log(event.event)
+        
         if (event.type === 'LucidEmbedEvent') {
+            console.log('GOT A LUCID EMBED EVENT:')
+
             if (event.event === 'EmbedCreated') {
-                const embedId = event.embedId
-                if (!embedId) {
-                    console.error('No embed Id found in the EmbedCreated event.')
-                    return
-                }
-                console.log(`Embed Created with id: ${event.embedId}`)
-                localStorage.setItem('lucidEmbedId', embedId)
+                console.log('IT WAS AN EMBED CREATED EVENT')
+            //     const embedId = event.embedId
+            //     if (!embedId) {
+            //         console.error('No embed Id found in the EmbedCreated event.')
+            //         return
+            //     }
+            //     console.log(`Embed Created with id: ${event.embedId}`)
+            //     localStorage.setItem('lucidEmbedId', embedId)
             }
         } else {
             console.log('GOT SOME OTHER LUCID MESSAGE EVENT:')
-            console.log(event.origin)
-            console.log(event.type)
-            console.log(event.data)
+
             //if the message is that the session token is invalid/expired, figure out how to refresh the session
         }
     }
