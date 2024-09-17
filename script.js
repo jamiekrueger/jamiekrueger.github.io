@@ -68,7 +68,10 @@ function isExpiredOrWithinTenMinutes(time) {
  * @returns a fresh embed session token, or undefined
  */
 async function fetchSessionToken(accessToken, embedId) {
+    if (!accessToken) return
     console.log('FETCHING SESSION TOKEN')
+    console.log(accessToken)
+    console.log(embedId)
 
     // If there is an existing embed to load, provide the embed id in the request body
     const maybeEmbedId = embedId ? {embedId: embedId} : {}
@@ -110,6 +113,12 @@ async function fetchSessionToken(accessToken, embedId) {
 async function fetchAccessToken(clientId, clientSecret, redirectUri, code) {
     console.log('FETCHING ACCESS TOKEN')
 
+    console.log(clientId)
+    console.log(clientSecret)
+    console.log(redirectUri)
+    console.log(code)
+
+    // i don't think this is catching and returning like i think.
     if (!clientId || !clientSecret || !redirectUri || !code) return
 
     try {
