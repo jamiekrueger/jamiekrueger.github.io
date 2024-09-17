@@ -31,9 +31,11 @@ function authorizationCodeFlow() {
  * Generates a new embed session whenever the app is reloaded
  */
 document.addEventListener("DOMContentLoaded", async function() {
-    const accessToken = getAccessToken()
-    const sessionToken = fetchSessionToken(accessToken, EMBED_ID)
-    iframe.src = `https://lucid.app/embeds?token=${sessionToken}`
+    const accessToken = await getAccessToken()
+    const sessionToken = await fetchSessionToken(accessToken, EMBED_ID)
+    if (sessionToken) {
+        iframe.src = `https://lucid.app/embeds?token=${sessionToken}`
+    }
 })
 
 
