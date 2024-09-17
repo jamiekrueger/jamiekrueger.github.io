@@ -1,84 +1,95 @@
-const formContainer = document.getElementById('form-container')
-const clientIdInput = document.getElementById('clientId')
-const clientSecretInput = document.getElementById('clientSecret')
-const createEmbedSessionBtn = document.getElementById('createEmbedSession')
-const resetContainer = document.getElementById('reset-container')
-const resetFormBtn = document.getElementById('resetForm')
+// DOM elements
+const authorizeButton = document.getElementById('authorize-button')
 const iframe = document.getElementById('lucidchart-frame')
 
-// Send the user through the OAuth 2.0 authorization code flow
-createEmbedSessionBtn.addEventListener('click', () => {
-    const clientId = clientIdInput.value
-    const clientSecret = clientSecretInput.value
-    const redirectUri = 'https://jamiekrueger.dev/redirect'
-    const scope = 'lucidchart.document.app.picker.share.embed'
+// Local storage values
+const CLIENT_ID = localStorage.getItem('lucidEmbedClientId')
+const CLIENT_SECRET = localStorage.getItem('lucidEmbedClientSecret')
+const CLIENT_REDIRECT_URI = localStorage.getItem('lucidEmbedClientRedirectUri')
+const ACCESS_TOKEN = localStorage.getItem('lucidEmbedAccessToken')
+const EXPIRES = localStorage.getItem('lucidEmbedAccessTokenExpires')
+const REFRESH_TOKEN = localStorage.getItem('lucidEmbedRefreshToken')
+const AUTH_CODE = localStorage.getItem('lucidEmbedAuthCode')
+const EMBED_ID = localStorage.getItem('lucidEmbedId')
 
-    // Simple validation to ensure inputs are not empty
-    if (!clientId || !clientSecret) {
-        alert('Please fill in all fields.')
-        return
-    }
+// Scopes requried to create an embed session
+const SCOPES = 'lucidchart.document.app.picker.share.embed+offline_access'
 
-    const authUrl = `https://lucid.app/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`
+authorizeButton.addEventListener('click', () => {
+  authorizationCodeFlow()
+})
 
-    localStorage.setItem('lucidEmbedClientId', clientId)
-    localStorage.setItem('lucidEmbedClientSecret', clientSecret)
-    localStorage.setItem('lucidEmbedClientRedirectUri', redirectUri)
-
-    // Redirect the user to the authorization page
+/**
+ * Directs the user to the authorization page, and redirects with AUTH_CODE set in local storage
+ */
+function authorizationCodeFlow() {
+    const authUrl = `https://lucid.app/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${CLIENT_REDIRECT_URI}&scope=${SCOPES}`
     window.location.href = authUrl
-})
+}
 
-// On page load, check if there is an existing embed id to load
+/**
+ * Generates a new embed session whenever the app is reloaded
+ */
 document.addEventListener("DOMContentLoaded", async function() {
-    const embedId = localStorage.getItem('lucidEmbedId')
-    const clientId = localStorage.getItem('lucidEmbedClientId')
-    const clientSecret = localStorage.getItem('lucidEmbedClientSecret')
-    const redirectUri = localStorage.getItem('lucidEmbedClientRedirectUri')
-    const authCode = localStorage.getItem('lucidEmbedAuthCode')
-
-    if (clientId && clientSecret && redirectUri && authCode) {
-        if (embedId) {
-            console.log(`Using stored embed Id: ${embedId}`)
-        } else {
-            console.log('Creating a new embed session.')
-        }
-        const accessToken = await fetchAccessToken(clientId, clientSecret, redirectUri, authCode)
-        if (!accessToken) return
-        const sessionToken = await fetchSessionToken(accessToken, embedId)
-        if (!sessionToken) return
-        updateIframeSrc(sessionToken)
-
-        // Hide the form and show the reset button
-        formContainer.classList.add('hidden')
-        resetContainer.classList.remove('hidden')
-    }
+    const accessToken = getAccessToken()
+    const sessionToken = fetchSessionToken(accessToken, EMBED_ID)
+    iframe.src = `https://lucid.app/embeds?token=${sessionToken}`
 })
 
-async function fetchSessionToken(accessToken, embedId) {
-    let body = {
-        origin: 'https://jamiekrueger.dev',
+
+/** 
+ * Refreshes an existing access token or creates a new access token 
+ */
+async function getAccessToken() {
+    if (ACCESS_TOKEN) {
+        if (isExpiredOrWithinTenMinutes(EXPIRES)) {
+            return fetchRefreshToken(CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN)
+        }
     }
 
-    if (embedId) {
-        body = {...body, embedId: embedId}
-    }
+    return fetchAccessToken(CLIENT_ID, CLIENT_SECRET, CLIENT_REDIRECT_URI, AUTH_CODE)
+}
+
+/**
+ * @param {*} time milliseconds elapsed since the UNIX epoch
+ * @returns true if the time is in the past or within 10 minutes of the current time
+ */
+function isExpiredOrWithinTenMinutes(time) {
+    if (!time) return true
+    const tenMinutesInMillis = 10 * 60 * 1000
+    const currentTime = Date.now()
+    return (time - currentTime) <= tenMinutesInMillis && time > currentTime
+}
+
+
+/**
+ * @param {*} accessToken an access token with the `lucidchart.document.app.picker.share.embed` & `offline_access` scopes
+ * @param {*} embedId (optional) an embed id saved from a previous `EmbedCreated` event
+ * @returns a fresh embed session token, or undefined
+ */
+async function fetchSessionToken(accessToken, embedId) {
+    console.log('FETCHING SESSION TOKEN')
+
+    // If there is an existing embed to load, provide the embed id in the request body
+    const maybeEmbedId = embedId ? {embedId: embedId} : {}
 
     try {
-        const response = await fetch( 'https://api.lucid.app/embeds/token', { 
+        const response = await fetchWithRetry( 'https://api.lucid.app/embeds/token', { 
             method: 'POST', 
-            headers: new Headers(
-                { 
-                    "Content-Type": "application/json",
-                    "Lucid-Api-Version": 1,
-                    "Authorization": `Bearer ${accessToken}`}) ,
-            body: JSON.stringify(body)
+            headers: new Headers({ 
+                "Content-Type": "application/json",
+                "Lucid-Api-Version": 1,
+                "Authorization": `Bearer ${accessToken}`
+            }),
+            body: JSON.stringify({
+                ...maybeEmbedId,
+                origin: 'https://jamiekrueger.dev'
+            })
         })
 
         const sessionToken = await response.text()
         if (sessionToken) {
             console.log('Lucid Embed Session Token:', sessionToken)
-            localStorage.setItem('lucidEmbedSessionToken', sessionToken) //do i need to store this?
             return sessionToken
         } else {
             console.error('No session token found in the response.')
@@ -88,9 +99,21 @@ async function fetchSessionToken(accessToken, embedId) {
     }
 }
 
-async function fetchAccessToken(clientId, clientSecret, redirectUri, authCode) {
+/**
+ * Fetches a fresh access token
+ * @param {*} clientId A Lucid OAuth 2.0 client id
+ * @param {*} clientSecret The Lucid OAuth 2.0 client's secret
+ * @param {*} redirectUri This application's authorized redirect uri
+ * @param {*} code The authorization code obtained during the auth flow
+ * @returns a fresh access token with the previously authorized access scopes, or undefined
+ */
+async function fetchAccessToken(clientId, clientSecret, redirectUri, code) {
+    console.log('FETCHING ACCESS TOKEN')
+
+    if (!clientId || !clientSecret || !redirectUri || !code) return
+
     try {
-        const response = await fetch( 'https://api.lucid.app/oauth2/token', { 
+        const response = await fetchWithRetry( 'https://api.lucid.app/oauth2/token', { 
             method: 'POST', 
             headers: new Headers({ 
                 "Content-Type": "application/json"
@@ -100,33 +123,72 @@ async function fetchAccessToken(clientId, clientSecret, redirectUri, authCode) {
                 client_secret: clientSecret,
                 redirect_uri: redirectUri,
                 grant_type: 'authorization_code',
-                code: authCode
+                code: code
             })
         })
         const data = await response.json()
+
         const accessToken = data.access_token
-        if (accessToken) {
-            console.log('Access Token:', accessToken)
+        const expires = data.expires
+        const refreshToken = data.refresh_token
+        if (accessToken && expires && refreshToken) {
             localStorage.setItem('lucidEmbedAccessToken', accessToken)
+            localStorage.setItem('lucidEmbedAccessTokenExpires', expires)
+            localStorage.setItem('lucidEmbedRefresh', refreshToken)
             return accessToken
         } else {
-            console.error('No access token found in the response:', data)
+            console.error('Error parsing response response body:', data)
         }
     } catch (error) {
         console.error('Error creating access token:', error)
     }
 }
 
-// Embed Lucid in your app
-function updateIframeSrc(sessionToken) {
-    const iframeSrc = `https://lucid.app/embeds?token=${sessionToken}`
-    iframe.src = iframeSrc
-    console.log("Updated iframe src:", iframeSrc)
-    
-    //TODO: retries and refreshes
+/**
+ * Fetches a fresh access token from a saved refresh token
+ * @param {*} clientId A Lucid OAuth 2.0 client id
+ * @param {*} clientSecret The Lucid OAuth 2.0 client's secret 
+ * @param {*} refreshToken An unexpired refresh token associated with an expired/expiring access token
+ * @returns A fresh access token with the same access scopes as the expired/expiring access token
+ */
+async function fetchRefreshToken(clientId, clientSecret, refreshToken) {
+    console.log('FETCHING REFRESH TOKEN')
+
+    if (!clientId || !clientSecret || !refreshToken) return
+
+    try {
+        const response = await fetchWithRetry( 'https://api.lucid.app/oauth2/token', { 
+            method: 'POST', 
+            headers: new Headers({ 
+                "Content-Type": "application/json"
+            }) ,
+            body: JSON.stringify({ 
+                client_id: clientId,
+                client_secret: clientSecret,
+                grant_type: 'refresh_token',
+                refresh_token: refreshToken
+            })
+        })
+        const data = await response.json()
+        const accessToken = data.access_token
+        const refreshToken = data.refresh_token
+
+        if (accessToken && refreshToken) {
+            console.log('Access Token:', accessToken)
+            console.log('Refresh Token:', refreshToken)
+
+            localStorage.setItem('lucidEmbedAccessToken', accessToken)
+            localStorage.setItem('lucidEmbedRefreshToken', refreshToken)
+            return accessToken
+        } else {
+            console.error('Error parsing response body:', data)
+        }
+    } catch (error) {
+        console.error('Error creating refresh token:', error)
+    }
 }
 
-// Listen for postMessage events from the iframe
+// Listens for postMessage events from the iFrame
 window.addEventListener('message', (event) => {
     if (event.origin === "https://lucid.app") {
         console.log(event)
@@ -134,7 +196,7 @@ window.addEventListener('message', (event) => {
         console.log(event.type)
         console.log(event.data)
         console.log(event.event)
-        
+
         if (event.type === 'LucidEmbedEvent') {
             console.log('GOT A LUCID EMBED EVENT:')
 
@@ -156,12 +218,21 @@ window.addEventListener('message', (event) => {
     }
 })
 
-resetFormBtn.addEventListener('click', () => {
-    localStorage.clear()
+/**
+ * Retries a fetch() request a set number of times if the request fails due to network issues, etc...
+ * @param  {...any} args fetch() request input
+ * @returns fetch() response
+ */
+async function fetchWithRetry(...args) {
+  let retryCount = 5;
+  while(retryCount > 0) {
+    try {
+      return await fetch(...args);
+    } catch(error) {
+        console.error(error)
+    }
+    retryCount -= 1;
+  }
 
-    iframe.src = ''
-
-    // Hide the reset button and show the form
-    formContainer.classList.remove('hidden')
-    resetContainer.classList.add('hidden')
-})
+  throw new Error(`Too many retries`);
+}  

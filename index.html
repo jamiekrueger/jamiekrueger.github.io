@@ -14,38 +14,15 @@
     </header>
 
     <main class="container mx-auto py-8 flex-grow">
-        <div  id="form-container" class="bg-white shadow-lg rounded-lg p-6">
+
+        <div class="bg-white shadow-lg rounded-lg p-6">
             <h1 class="text-3xl font-bold text-gray-700 mb-6">Editable Lucidchart Diagram Embed</h1>
             
-            <!-- Input fields for Client ID, Client Secret, Redirect URI -->
             <div class="space-y-4">
-                <div class="input-group">
-                    <label for="clientId" class="block text-sm font-medium text-gray-700">Client ID:</label>
-                    <input type="text" id="clientId" placeholder="Enter your client ID" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-                
-                <div class="input-group">
-                    <label for="clientSecret" class="block text-sm font-medium text-gray-700">Client Secret:</label>
-                    <input type="text" id="clientSecret" placeholder="Enter your client secret" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                </div>
-
-                <!-- Warning message -->
-                <div class="text-red-600 text-sm font-medium mt-2">
-                    ⚠️ This is for testing purposes only. 
-                    This is a static site. Typically, your credentials should be stored securely in an application. 
-                    Your credentials will be stored in Local Storage and you will be able to reset the embed and clear this cache. 
-                </div>
-    
-                <button id="createEmbedSession" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">Create Embed Session</button>
+                <button id="authorize-button" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mt-4">Authorize Embed</button>
             </div>
         </div>
 
-        <!-- Reset button -->
-        <div id="reset-container" class="hidden bg-white shadow-lg rounded-lg p-6">
-            <h1 class="text-3xl font-bold text-gray-700 mb-6">Session Created</h1>
-            <p class="text-gray-700 mb-4">Your Lucidchart embed session has been created successfully.</p>
-            <button id="resetForm" class="w-full bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">Reset</button>
-        </div>
 
         <!-- iFrame -->
         <div class="mt-8">
