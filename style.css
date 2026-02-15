@@ -1,0 +1,1162 @@
+/*
+ * Jamie Krueger — Personal Site Homepage
+ *
+ * Design: A room scene with a desk, viewed from behind a person sitting
+ * in an office chair. Clickable desk objects link to project pages.
+ * Pure CSS pixel art aesthetic — no images, no JS, no build tools.
+ *
+ * Unit strategy:
+ *   - All sizes use vw units so everything scales proportionally with
+ *     the viewport, including on zoom. px units are only used in the
+ *     mobile breakpoint where vw would be too small.
+ *   - Borders use vw (not px) so they scale with zoom. Mapping:
+ *     1px≈0.1vw, 2px≈0.15vw, 3px≈0.2vw, 4px≈0.25vw, 6px≈0.35vw
+ *
+ * 3D / perspective notes:
+ *   - Desk surface uses perspective(900px) rotateX(10deg) for depth illusion
+ *   - transform-style: preserve-3d on desk-surface allows children to
+ *     counter-rotate with rotateX(-10deg) to appear upright (monitors, mug)
+ *   - preserve-3d causes 3D hit-testing: elements need translateZ() to
+ *     stay above the desk plane for reliable pointer events
+ *   - Desk objects avoid pointer-events:none on children — with preserve-3d,
+ *     pointer-events:none causes events to fall through to background
+ *     elements instead of bubbling to the parent <a> tag
+ *
+ * Hover shadow strategy:
+ *   - On hover, objects lift with translate(0, -0.35vw)
+ *   - Box-shadow Y offset increases (0.25vw → 0.5vw) to compensate,
+ *     keeping the shadow nearly stationary on the desk surface
+ */
+
+/* ===== Reset & Pixel Art Foundation ===== */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Press Start 2P', monospace;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Scene ===== */
+.scene {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== Wall ===== */
+.wall {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  z-index: 0;
+  background-color: #6e8068;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px, transparent 196px,
+      #647862 196px, #647862 200px
+    );
+}
+
+/* Ambient shadow near baseboard */
+.wall::before {
+  content: '';
+  position: absolute;
+  bottom: 1vw;
+  left: 0;
+  right: 0;
+  height: 3vw;
+  background:
+    linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%,
+      rgba(0, 0, 0, 0.05) 40%, rgba(0, 0, 0, 0.05) 70%,
+      transparent 70%
+    );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Baseboard */
+.wall::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1vw;
+  background: #4a3c28;
+  border-top: 0.25vw solid #5a4c38;
+  border-bottom: 0.25vw solid #3a2c18;
+  z-index: 2;
+}
+
+/* ===== Window ===== */
+/* Positioned at right third of wall so mountains stay visible behind monitors */
+.window {
+  position: absolute;
+  top: 8%;
+  left: 100%;
+  transform: translateX(-50%);
+  width: 46%;
+  height: 72%;
+  z-index: 1;
+  overflow: hidden;
+
+  /* Stepped sky gradient */
+  background:
+    linear-gradient(
+      180deg,
+      #385880 0%, #385880 20%,
+      #4878a0 20%, #4878a0 40%,
+      #68a0c8 40%, #68a0c8 60%,
+      #90c0d8 60%, #90c0d8 80%,
+      #c0d8e8 80%
+    );
+
+  /* Beveled wood frame */
+  border: 0.35vw solid;
+  border-color: #8a7c60 #4a3c28 #4a3c28 #8a7c60;
+  box-shadow:
+    inset 0 0 0 0.15vw #6a5c40,
+    0.25vw 0.25vw 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Mountain silhouette (Wasatch Front) */
+.window__mountains {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: #4a5868;
+  clip-path: polygon(
+    0% 100%,
+    0% 75%,
+    3% 68%, 6% 72%,
+    10% 58%, 14% 55%,
+    18% 44%, 21% 48%,
+    24% 38%, 27% 42%,
+    30% 34%, 33% 30%,
+    36% 33%, 39% 27%,
+    42% 24%, 45% 22%,
+    48% 24%, 51% 28%,
+    54% 26%, 57% 30%,
+    60% 34%, 63% 38%,
+    66% 42%, 69% 40%,
+    72% 48%, 75% 52%,
+    78% 56%, 81% 58%,
+    84% 62%, 87% 65%,
+    90% 68%, 93% 72%,
+    96% 75%, 100% 78%,
+    100% 100%
+  );
+}
+
+/* Snow caps on tallest peaks */
+.window__mountains::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: #d8e0e8;
+  clip-path: polygon(
+    39% 100%, 39% 70%,
+    42% 58%, 45% 52%,
+    48% 58%, 48% 100%,
+    53% 100%, 53% 72%,
+    54% 62%, 57% 72%,
+    57% 100%
+  );
+}
+
+/* Window pane cross divider */
+.window::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      transparent calc(50% - 0.2vw),
+      #6a5c40 calc(50% - 0.2vw),
+      #6a5c40 calc(50% + 0.2vw),
+      transparent calc(50% + 0.2vw)
+    ),
+    linear-gradient(
+      0deg,
+      transparent calc(50% - 0.2vw),
+      #6a5c40 calc(50% - 0.2vw),
+      #6a5c40 calc(50% + 0.2vw),
+      transparent calc(50% + 0.2vw)
+    );
+}
+
+/* ===== Floor ===== */
+.floor {
+  position: absolute;
+  top: 40%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  background-color: #6a5a42;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px, transparent 76px,
+      #5a4a30 76px, #5a4a30 80px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px, transparent 36px,
+      #5a4a30 36px, #5a4a30 40px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      #6a5a42 0px, #6a5a42 80px,
+      #6e5e46 80px, #6e5e46 160px
+    );
+}
+
+/* Stepped depth gradient on floor */
+.floor::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      0deg,
+      transparent 0%, transparent 50%,
+      rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0.05) 75%,
+      rgba(0, 0, 0, 0.1) 75%
+    );
+  pointer-events: none;
+}
+
+/* ===== Desk ===== */
+.desk {
+  position: absolute;
+  top: 28%;
+  left: 10%;
+  right: 10%;
+  bottom: 6%;
+  z-index: 2;
+}
+
+/* ===== Desk Surface ===== */
+.desk-surface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 62%;
+  transform: perspective(900px) rotateX(10deg);
+  transform-origin: center bottom;
+  /* preserve-3d lets children counter-rotate to appear upright on the tilted desk */
+  transform-style: preserve-3d;
+
+  background-color: #8B6914;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      #8B6914 0px, #8B6914 6px,
+      #9B7424 6px, #9B7424 10px,
+      #7A5C10 10px, #7A5C10 14px,
+      #8B6914 14px, #8B6914 22px,
+      #7A5C10 22px, #7A5C10 24px,
+      #9B7424 24px, #9B7424 30px,
+      #8B6914 30px, #8B6914 36px
+    );
+
+  border: 0.25vw solid;
+  border-color: #a07e1c #5a4410 #5a4410 #a07e1c;
+}
+
+/* ===== Desk Front Edge ===== */
+.desk-front {
+  position: absolute;
+  top: 62%;
+  left: 0;
+  right: 0;
+  height: 2vw;
+  background: #6a5210;
+  border: 0.25vw solid;
+  border-color: #6a5210 #4a3a08 #4a3a08 #7a6218;
+  border-top: 0.15vw solid #4a3a08;
+  box-shadow: 0 0.25vw 0 #2a1a04;
+}
+
+/* Drawer panels */
+.desk-front::before,
+.desk-front::after {
+  content: '';
+  position: absolute;
+  top: 0.25vw;
+  width: 24%;
+  height: calc(100% - 0.75vw);
+  border: 0.15vw solid;
+  border-color: #7a6218 #4a3a08 #4a3a08 #7a6218;
+}
+
+.desk-front::before { left: 16%; }
+.desk-front::after { right: 16%; }
+
+/* ===== Desk Legs ===== */
+.desk-leg {
+  position: absolute;
+  top: calc(62% + 2vw);
+  width: 1vw;
+  bottom: 0;
+  background: #5a4210;
+  border: 0.2vw solid;
+  border-color: #6a5218 #3a2a08 #3a2a08 #6a5218;
+  box-shadow: 0.25vw 0.25vw 0 rgba(0, 0, 0, 0.25);
+}
+
+.desk-leg--left { left: 6%; }
+.desk-leg--right { right: 6%; }
+
+/* ===== Monitors ===== */
+.monitor {
+  position: absolute;
+  width: 30%;
+  z-index: 4;
+  pointer-events: none;
+  /* Counter-rotates the desk's 10deg tilt so monitors appear upright */
+  transform: rotateX(-10deg);
+  transform-origin: center bottom;
+}
+
+/* Monitors placed with only a 0.5% gap between them (left ends at 50%, right starts at 50.5%) */
+.monitor--left {
+  top: -8vw;
+  left: 20%;
+}
+
+.monitor--right {
+  top: -8vw;
+  left: 50.5%;
+}
+
+.monitor__screen {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0a0a18;
+  border: 0.25vw solid;
+  border-color: #444 #222 #222 #444;
+  position: relative;
+  overflow: hidden;
+}
+
+/* VS Code — sidebar, tab bar, status bar */
+.monitor--left .monitor__screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    /* Activity bar (far left icon strip) */
+    linear-gradient(#16161e, #16161e) 0 0 / 4% 100% no-repeat,
+    linear-gradient(#ccc, #ccc) 1.2% 4% / 1.8% 0.5vw no-repeat,
+    linear-gradient(#888, #888) 1.2% 12% / 1.8% 0.5vw no-repeat,
+    linear-gradient(#888, #888) 1.2% 20% / 1.8% 0.5vw no-repeat,
+    linear-gradient(#888, #888) 1.2% 28% / 1.8% 0.5vw no-repeat,
+    /* Active indicator on first icon */
+    linear-gradient(#ccc, #ccc) 0 3% / 0.5% 1.2vw no-repeat,
+    /* Sidebar */
+    linear-gradient(#1e1e2e, #1e1e2e) 4% 0 / 16% 100% no-repeat,
+    /* Sidebar section header */
+    linear-gradient(#aaa, #aaa) 5.5% 8% / 12% 0.15vw no-repeat,
+    /* Folder (open) */
+    linear-gradient(#dcb67a, #dcb67a) 5.5% 12% / 2% 0.15vw no-repeat,
+    linear-gradient(#ccc, #ccc) 8.5% 12% / 8% 0.15vw no-repeat,
+    /* Indented files under folder */
+    linear-gradient(#6688cc, #6688cc) 7% 16% / 1.8% 0.15vw no-repeat,
+    linear-gradient(#8a8a8a, #8a8a8a) 10% 16% / 7% 0.15vw no-repeat,
+    linear-gradient(#e8ab53, #e8ab53) 7% 20% / 1.8% 0.15vw no-repeat,
+    linear-gradient(#8a8a8a, #8a8a8a) 10% 20% / 5.5% 0.15vw no-repeat,
+    linear-gradient(#4ec994, #4ec994) 7% 24% / 1.8% 0.15vw no-repeat,
+    linear-gradient(#8a8a8a, #8a8a8a) 10% 24% / 8% 0.15vw no-repeat,
+    linear-gradient(#6688cc, #6688cc) 7% 28% / 1.8% 0.15vw no-repeat,
+    linear-gradient(#8a8a8a, #8a8a8a) 10% 28% / 6% 0.15vw no-repeat,
+    /* Second folder (collapsed) */
+    linear-gradient(#dcb67a, #dcb67a) 5.5% 34% / 2% 0.15vw no-repeat,
+    linear-gradient(#ccc, #ccc) 8.5% 34% / 6% 0.15vw no-repeat,
+    /* More files */
+    linear-gradient(#e8ab53, #e8ab53) 7% 38% / 1.8% 0.15vw no-repeat,
+    linear-gradient(#8a8a8a, #8a8a8a) 10% 38% / 7% 0.15vw no-repeat,
+    linear-gradient(#6688cc, #6688cc) 7% 42% / 1.8% 0.15vw no-repeat,
+    linear-gradient(#8a8a8a, #8a8a8a) 10% 42% / 5% 0.15vw no-repeat,
+    linear-gradient(#4ec994, #4ec994) 7% 46% / 1.8% 0.15vw no-repeat,
+    linear-gradient(#8a8a8a, #8a8a8a) 10% 46% / 9% 0.15vw no-repeat,
+    /* Tab bar */
+    linear-gradient(#2d2d3d, #2d2d3d) 20% 0 / 80% 6% no-repeat,
+    linear-gradient(#1e1e2e, #1e1e2e) 20% 0 / 20% 6% no-repeat,
+    linear-gradient(#8a8a8a, #8a8a8a) 24% 2.5% / 10% 0.15vw no-repeat,
+    /* Status bar */
+    linear-gradient(#1e1e2e, #1e1e2e) 0 100% / 100% 5% no-repeat;
+}
+
+/* VS Code — editor code lines */
+.monitor--left .monitor__screen::after {
+  content: '';
+  position: absolute;
+  top: 8%;
+  left: 20%;
+  right: 4%;
+  bottom: 7%;
+  background:
+    /* Line numbers */
+    linear-gradient(#555, #555) 0 0.3vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 0.9vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 1.5vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 2.1vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 2.7vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 3.3vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 3.9vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 4.5vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 5.1vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 5.7vw / 3% 0.15vw no-repeat,
+    /* Code lines — keywords, strings, vars */
+    linear-gradient(#c586c0, #c586c0) 5% 0.3vw / 12% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 19% 0.3vw / 18% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 40% 0.3vw / 10% 0.15vw no-repeat,
+    linear-gradient(#4ec994, #4ec994) 5% 0.9vw / 8% 0.15vw no-repeat,
+    linear-gradient(#ce9178, #ce9178) 15% 0.9vw / 30% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 8% 1.5vw / 10% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 20% 1.5vw / 14% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 37% 1.5vw / 20% 0.15vw no-repeat,
+    linear-gradient(#c586c0, #c586c0) 8% 2.1vw / 8% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 18% 2.1vw / 22% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 5% 2.7vw / 15% 0.15vw no-repeat,
+    linear-gradient(#b5cea8, #b5cea8) 22% 2.7vw / 8% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 8% 3.3vw / 18% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 28% 3.3vw / 25% 0.15vw no-repeat,
+    linear-gradient(#c586c0, #c586c0) 5% 3.9vw / 10% 0.15vw no-repeat,
+    linear-gradient(#ce9178, #ce9178) 17% 3.9vw / 35% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 5% 4.5vw / 12% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 19% 4.5vw / 16% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 8% 5.1vw / 20% 0.15vw no-repeat,
+    linear-gradient(#b5cea8, #b5cea8) 30% 5.1vw / 12% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 5% 5.7vw / 6% 0.15vw no-repeat;
+}
+
+/* Terminal — title bar */
+.monitor--right .monitor__screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    /* Title bar */
+    linear-gradient(#2d2d2d, #2d2d2d) 0 0 / 100% 6% no-repeat,
+    /* Window controls */
+    linear-gradient(#e85050, #e85050) 2% 2.5% / 1.5% 0.15vw no-repeat,
+    linear-gradient(#e8b830, #e8b830) 5% 2.5% / 1.5% 0.15vw no-repeat,
+    linear-gradient(#50c040, #50c040) 8% 2.5% / 1.5% 0.15vw no-repeat,
+    linear-gradient(#888, #888) 40% 2.5% / 15% 0.15vw no-repeat;
+}
+
+/* Terminal — output lines + prompt */
+.monitor--right .monitor__screen::after {
+  content: '';
+  position: absolute;
+  top: 8%;
+  left: 3%;
+  right: 3%;
+  bottom: 3%;
+  background:
+    /* Prompt prefix */
+    linear-gradient(#50c040, #50c040) 0 0.3vw / 5% 0.15vw no-repeat,
+    linear-gradient(#ccc, #ccc) 7% 0.3vw / 40% 0.15vw no-repeat,
+    /* Output */
+    linear-gradient(#ccc, #ccc) 0 0.9vw / 60% 0.15vw no-repeat,
+    linear-gradient(#ccc, #ccc) 0 1.5vw / 45% 0.15vw no-repeat,
+    linear-gradient(#ccc, #ccc) 0 2.1vw / 72% 0.15vw no-repeat,
+    linear-gradient(#e85050, #e85050) 0 2.7vw / 30% 0.15vw no-repeat,
+    linear-gradient(#ccc, #ccc) 0 3.3vw / 55% 0.15vw no-repeat,
+    linear-gradient(#50c040, #50c040) 0 3.9vw / 5% 0.15vw no-repeat,
+    linear-gradient(#ccc, #ccc) 7% 3.9vw / 50% 0.15vw no-repeat,
+    /* More output */
+    linear-gradient(#ccc, #ccc) 0 4.5vw / 65% 0.15vw no-repeat,
+    linear-gradient(#ccc, #ccc) 0 5.1vw / 38% 0.15vw no-repeat,
+    linear-gradient(#50c040, #50c040) 0 5.7vw / 5% 0.15vw no-repeat,
+    linear-gradient(#ccc, #ccc) 7% 5.7vw / 42% 0.15vw no-repeat,
+    linear-gradient(#ccc, #ccc) 0 6.3vw / 58% 0.15vw no-repeat,
+    /* Active prompt at bottom */
+    linear-gradient(#50c040, #50c040) 0 100% / 5% 0.15vw no-repeat,
+    linear-gradient(#ccc, #ccc) 7% 100% / 12% 0.15vw no-repeat,
+    /* Blinking cursor */
+    linear-gradient(#ccc, #ccc) 20% 100% / 0.15vw 0.6vw no-repeat;
+}
+
+.monitor__neck {
+  width: 10%;
+  height: 1.2vw;
+  margin: 0 auto;
+  background: #333;
+  border-left: 0.15vw solid #444;
+  border-right: 0.15vw solid #222;
+}
+
+.monitor__base {
+  width: 40%;
+  height: 0.8vw;
+  margin: 0 auto;
+  background: #333;
+  border: 0.15vw solid;
+  border-color: #444 #222 #222 #444;
+}
+
+/* ===== Keyboard ===== */
+.keyboard {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 21.6%;
+  height: 4vw;
+  background-color: #2a2a2a;
+  border: 0.25vw solid;
+  border-color: #444 #222 #222 #444;
+  z-index: 3;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px, transparent 12px,
+      #333 12px, #333 14px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px, transparent 14px,
+      #333 14px, #333 16px
+    );
+}
+
+/* ===== Mouse ===== */
+.mouse {
+  position: absolute;
+  top: 54%;
+  left: calc(50% + 12.5%);
+  width: 2.5vw;
+  height: 3.5vw;
+  background: #2a2a2a;
+  border: 0.2vw solid;
+  border-color: #444 #222 #222 #444;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Button divider line */
+.mouse::before {
+  content: '';
+  position: absolute;
+  top: 0.15vw;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.15vw;
+  height: 40%;
+  background: #444;
+}
+
+/* ===== Desk Objects (shared) ===== */
+/* z-index: 5 keeps clickable objects above monitors (z:4) */
+.desk-object {
+  position: absolute;
+  display: block;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  z-index: 5;
+}
+
+.desk-object:hover {
+  transform: translate(0, -0.35vw);
+  z-index: 6;
+}
+
+/* ===== MTG Card (back) ===== */
+.mtg-card {
+  bottom: 18%;
+  left: 20%;
+  width: 2.5vw;
+  height: 3.5vw;
+  background: #2a1808;
+  border: 0.25vw solid #1a0c04;
+  box-shadow: 0.25vw 0.25vw 0 rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+/* Shadow Y offset increases on hover (0.25→0.5vw) to keep shadow stationary as card lifts */
+.mtg-card:hover {
+  box-shadow: 0.25vw 0.5vw 0 rgba(0, 0, 0, 0.5);
+}
+
+.mtg-card__back {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #4e3f19;
+}
+
+/* Red orbs in corners */
+.mtg-card__back::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(#c36120, #c36120) 8% 6% / 0.2vw 0.2vw no-repeat,
+    linear-gradient(#c36120, #c36120) 92% 6% / 0.2vw 0.2vw no-repeat,
+    linear-gradient(#c36120, #c36120) 8% 94% / 0.2vw 0.2vw no-repeat,
+    linear-gradient(#c36120, #c36120) 92% 94% / 0.2vw 0.2vw no-repeat;
+}
+
+/* Light brown oval */
+.mtg-card__oval {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 75%;
+  background: #8e5c2d;
+  clip-path: polygon(
+    30% 0%, 70% 0%,
+    90% 8%, 100% 20%,
+    100% 80%, 90% 92%,
+    70% 100%, 30% 100%,
+    10% 92%, 0% 80%,
+    0% 20%, 10% 8%
+  );
+}
+
+/* 5 mana orbs in pentagon — W(yellow), U(blue), B(black), R(red), G(green) */
+.mtg-card__oval::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    /* White/Yellow — top center */
+    linear-gradient(#eac02f, #eac02f) 50% 25% / 0.22vw 0.22vw no-repeat,
+    /* Blue — top right */
+    linear-gradient(#438bac, #438bac) 72% 43% / 0.22vw 0.22vw no-repeat,
+    /* Black — bottom right */
+    linear-gradient(#332914, #332914) 65% 66% / 0.22vw 0.22vw no-repeat,
+    /* Red — bottom left */
+    linear-gradient(#d73f27, #d73f27) 35% 66% / 0.22vw 0.22vw no-repeat,
+    /* Green — top left */
+    linear-gradient(#64cb12, #64cb12) 28% 43% / 0.22vw 0.22vw no-repeat;
+}
+
+/* ===== Coffee Mug (side profile, pixel art) ===== */
+/* Counter-rotated like monitors to stand upright on tilted desk.
+   translateZ(0.05vw) lifts mug just above desk plane so box-shadow
+   renders visibly underneath in the preserve-3d context. */
+.coffee-mug {
+  top: 60%;
+  right: 25%;
+  width: 4.2vw;
+  height: 3.6vw;
+  transform: rotateX(-10deg) translateZ(0.05vw);
+  transform-origin: center bottom;
+}
+
+/* Must repeat full transform chain (rotateX + translateZ) on hover,
+   not just translate, to avoid losing counter-rotation */
+.coffee-mug:hover {
+  transform: rotateX(-10deg) translateZ(0.05vw) translate(0, -0.35vw);
+}
+
+/* Shadow Y offset increases on hover to keep shadow stationary as mug lifts */
+.coffee-mug:hover .coffee-mug__body {
+  box-shadow: 0.25vw 0.5vw 0 rgba(0, 0, 0, 0.35);
+}
+
+.coffee-mug__body {
+  position: absolute;
+  width: 3vw;
+  height: 100%;
+  bottom: 0;
+  left: 0;
+  background: #d0c8b8;
+  border: 0.25vw solid;
+  border-color: #e0d8c8 #8a7a6a #8a7a6a #e0d8c8;
+  box-shadow: 0.25vw 0.25vw 0 rgba(0, 0, 0, 0.35);
+  transition: box-shadow 0.15s ease;
+}
+
+/* Pixel steam */
+.coffee-mug__body::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2vw;
+  height: 2.5vw;
+  opacity: 0.4;
+  background:
+    /* Left wisp */
+    linear-gradient(#fff, #fff) 15% 80% / 0.15vw 0.15vw no-repeat,
+    linear-gradient(#fff, #fff) 10% 65% / 0.15vw 0.15vw no-repeat,
+    linear-gradient(#fff, #fff) 18% 50% / 0.15vw 0.15vw no-repeat,
+    linear-gradient(#fff, #fff) 12% 35% / 0.15vw 0.15vw no-repeat,
+    linear-gradient(#fff, #fff) 20% 20% / 0.15vw 0.15vw no-repeat,
+    /* Center wisp */
+    linear-gradient(#fff, #fff) 50% 85% / 0.15vw 0.15vw no-repeat,
+    linear-gradient(#fff, #fff) 55% 70% / 0.15vw 0.15vw no-repeat,
+    linear-gradient(#fff, #fff) 48% 55% / 0.15vw 0.15vw no-repeat,
+    linear-gradient(#fff, #fff) 54% 40% / 0.15vw 0.15vw no-repeat,
+    linear-gradient(#fff, #fff) 46% 25% / 0.15vw 0.15vw no-repeat,
+    /* Right wisp */
+    linear-gradient(#fff, #fff) 80% 78% / 0.15vw 0.15vw no-repeat,
+    linear-gradient(#fff, #fff) 85% 62% / 0.15vw 0.15vw no-repeat,
+    linear-gradient(#fff, #fff) 78% 46% / 0.15vw 0.15vw no-repeat,
+    linear-gradient(#fff, #fff) 86% 30% / 0.15vw 0.15vw no-repeat;
+  animation: steam 2s ease-in-out infinite;
+}
+
+@keyframes steam {
+  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.4; }
+  50% { transform: translateX(-50%) translateY(-0.3vw); opacity: 0.2; }
+}
+
+.coffee-mug__handle {
+  position: absolute;
+  top: 0.72vw;
+  right: 0;
+  width: 1vw;
+  height: 1.7vw;
+  background: transparent;
+  border: 0.25vw solid;
+  border-color: #b09880 #8a7a6a #8a7a6a #b09880;
+  border-left: none;
+}
+
+.coffee-mug__label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.4vw;
+  color: #5a4a3a;
+}
+
+/* ===== Notebook ===== */
+.notebook {
+  bottom: 12%;
+  right: 9%;
+  width: 6.5vw;
+  height: 8.3vw;
+  background: #f0ead4;
+  border: 0.2vw solid;
+  border-color: #f8f2dc #b0a888 #b0a888 #f8f2dc;
+  box-shadow: 0.25vw 0.25vw 0 rgba(0, 0, 0, 0.35);
+  /* translateZ(1vw) lifts notebook above the desk plane in preserve-3d context
+     to prevent hover dead zones from 3D hit-testing misses */
+  transform: rotate(3deg) translateZ(1vw);
+}
+
+/* Shadow Y offset increases on hover to keep shadow stationary as notebook lifts */
+.notebook:hover {
+  transform: rotate(3deg) translateZ(1vw) translate(0, -0.35vw);
+  box-shadow: 0.25vw 0.5vw 0 rgba(0, 0, 0, 0.4);
+}
+
+.notebook__binding {
+  position: absolute;
+  top: 0;
+  left: 0.3vw;
+  width: 0.65vw;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.notebook__ring {
+  width: 0.55vw;
+  height: 0.3vw;
+  border: 0.15vw solid #666;
+  background: transparent;
+}
+
+.notebook__page {
+  position: absolute;
+  top: 0.4vw;
+  left: 1.25vw;
+  right: 0.3vw;
+  bottom: 0.4vw;
+  padding-top: 1vw; /* Pushes lines below the "Notes" label */
+}
+
+.notebook__line {
+  width: 100%;
+  height: 0.1vw;
+  background: #b0c4d8;
+  margin-bottom: 0.55vw;
+}
+
+.notebook__label {
+  position: absolute;
+  top: 0.4vw;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.4vw;
+  color: #334;
+}
+
+/* ===== Chair & Person (back view) ===== */
+.chair-person {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 50%;
+  width: 27vw;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Head — dark hair from behind */
+.person__head {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10vw;
+  height: 7.5vw;
+  background: #3a2818;
+  border: 0.25vw solid;
+  border-color: #4a3828 #2a1808 #2a1808 #4a3828;
+  z-index: 3;
+}
+
+/* Ears */
+.person__head::before,
+.person__head::after {
+  content: '';
+  position: absolute;
+  top: 2.8vw;
+  width: 1.3vw;
+  height: 2vw;
+  background: #c8a888;
+  border: 0.15vw solid #a88868;
+}
+
+.person__head::before { left: -1.5vw; }
+.person__head::after { right: -1.5vw; }
+
+/* Shoulders / upper body — hoodie */
+.person__body {
+  position: absolute;
+  top: 6.5vw;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 27vw;
+  height: 12vw;
+  background: #2a4468;
+  border: 0.25vw solid;
+  border-color: #3a5478 #1a3458 #1a3458 #3a5478;
+  z-index: 1;
+}
+
+/* Neck */
+.person__body::before {
+  content: '';
+  position: absolute;
+  top: -1.8vw;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3.5vw;
+  height: 2.2vw;
+  background: #c8a888;
+}
+
+/* Chair back — dark mesh */
+.chair__back {
+  position: absolute;
+  top: 9.5vw;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20vw;
+  height: 14.5vw;
+  background: #2a2a2a;
+  border: 0.25vw solid;
+  border-color: #444 #222 #222 #444;
+  z-index: 2;
+}
+
+/* Mesh pattern on chair back */
+.chair__back::before {
+  content: '';
+  position: absolute;
+  inset: 0.35vw;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px, transparent 8px,
+      rgba(255, 255, 255, 0.05) 8px, rgba(255, 255, 255, 0.05) 10px
+    );
+}
+
+/* Chair seat */
+.chair__seat {
+  position: absolute;
+  top: 24vw;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 23vw;
+  height: 2vw;
+  background: #2a2a2a;
+  border: 0.2vw solid;
+  border-color: #3a3a3a #1a1a1a #1a1a1a #3a3a3a;
+  z-index: 1;
+}
+
+/* Chair post/stem */
+.chair__post {
+  position: absolute;
+  top: 25.5vw;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2vw;
+  height: 24vw;
+  background: #333;
+  border-left: 0.2vw solid #444;
+  border-right: 0.2vw solid #222;
+  z-index: 1;
+}
+
+/* Chair base (5-star base from above = horizontal bar) */
+.chair__base {
+  position: absolute;
+  top: 49vw;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 23vw;
+  height: 1.5vw;
+  background: #333;
+  border: 0.2vw solid;
+  border-color: #444 #222 #222 #444;
+  z-index: 1;
+}
+
+/* Caster wheels */
+.chair__base::before,
+.chair__base::after {
+  content: '';
+  position: absolute;
+  bottom: -1.2vw;
+  width: 1.8vw;
+  height: 1.2vw;
+  background: #222;
+  border: 0.15vw solid #333;
+}
+
+.chair__base::before { left: -0.8vw; }
+.chair__base::after { right: -0.8vw; }
+
+/* ===== Responsive: mobile stacked layout =====
+   On mobile, the room scene is hidden entirely. Desk objects are shown
+   as a vertically centered scrolling list on a plain background.
+   All vw units are overridden with fixed px because vw is too small
+   on narrow viewports. */
+@media (max-width: 640px) {
+  html, body {
+    overflow: auto;
+  }
+
+  .scene {
+    height: auto;
+    min-height: 100vh;
+    background: #2a2018;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+    gap: 2rem;
+  }
+
+  .wall,
+  .floor,
+  .desk-front,
+  .desk-leg,
+  .monitor,
+  .keyboard,
+  .mouse,
+  .chair-person {
+    display: none;
+  }
+
+  /* display:contents dissolves desk from layout so children participate
+     directly in scene's flex context */
+  .desk {
+    position: relative;
+    inset: auto;
+    display: contents;
+  }
+
+  .desk-surface {
+    position: relative;
+    height: auto;
+    transform: none;
+    transform-style: flat; /* Disable preserve-3d — no perspective needed on mobile */
+    background: none !important;
+    border: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 0;
+  }
+
+  /* position:relative (not static) preserves containing block for absolutely
+     positioned children like steam, handle, and mug label.
+     Inset reset (auto) overrides desktop absolute positioning. */
+  .desk-object {
+    position: relative !important;
+    transform: none !important;
+    flex-shrink: 0;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+  }
+
+
+  .desk-object:hover {
+    transform: translateY(-4px) !important;
+  }
+
+  /* MTG Card — fixed mobile sizes */
+  .mtg-card {
+    width: 80px;
+    height: 112px;
+    border-width: 2px;
+  }
+
+  .mtg-card__back {
+    border-width: 2px;
+  }
+
+  .mtg-card__oval::before {
+    background:
+      linear-gradient(#eac02f, #eac02f) 50% 25% / 5px 5px no-repeat,
+      linear-gradient(#438bac, #438bac) 72% 43% / 5px 5px no-repeat,
+      linear-gradient(#332914, #332914) 65% 66% / 5px 5px no-repeat,
+      linear-gradient(#d73f27, #d73f27) 35% 66% / 5px 5px no-repeat,
+      linear-gradient(#64cb12, #64cb12) 28% 43% / 5px 5px no-repeat;
+  }
+
+  .mtg-card__back::after {
+    background:
+      linear-gradient(#c36120, #c36120) 8% 6% / 4px 4px no-repeat,
+      linear-gradient(#c36120, #c36120) 92% 6% / 4px 4px no-repeat,
+      linear-gradient(#c36120, #c36120) 8% 94% / 4px 4px no-repeat,
+      linear-gradient(#c36120, #c36120) 92% 94% / 4px 4px no-repeat;
+  }
+
+  /* Coffee Mug — fixed mobile sizes */
+  .coffee-mug {
+    width: 100px;
+    height: 80px;
+    margin-top: 30px; /* Extra top margin accounts for steam animation above mug */
+  }
+
+  .coffee-mug__body {
+    width: 72px;
+    height: 100%;
+    border-width: 3px;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+  }
+
+  .coffee-mug__body::before {
+    width: 50px;
+    height: 60px;
+    opacity: 0.4;
+    background:
+      linear-gradient(#fff, #fff) 15% 80% / 3px 3px no-repeat,
+      linear-gradient(#fff, #fff) 10% 65% / 3px 3px no-repeat,
+      linear-gradient(#fff, #fff) 18% 50% / 3px 3px no-repeat,
+      linear-gradient(#fff, #fff) 50% 85% / 3px 3px no-repeat,
+      linear-gradient(#fff, #fff) 55% 70% / 3px 3px no-repeat,
+      linear-gradient(#fff, #fff) 48% 55% / 3px 3px no-repeat,
+      linear-gradient(#fff, #fff) 80% 78% / 3px 3px no-repeat,
+      linear-gradient(#fff, #fff) 85% 62% / 3px 3px no-repeat;
+  }
+
+  .coffee-mug__handle {
+    top: 16px;
+    width: 24px;
+    height: 38px;
+    border-width: 3px;
+  }
+
+  .coffee-mug__label {
+    font-size: 8px;
+  }
+
+  /* Notebook — fixed mobile sizes */
+  .notebook {
+    width: 160px;
+    height: 200px;
+    transform: none !important;
+    border-width: 3px;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+  }
+
+  .notebook:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 3px 6px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  .notebook__binding {
+    left: 8px;
+    width: 14px;
+  }
+
+  .notebook__ring {
+    width: 12px;
+    height: 7px;
+    border-width: 2px;
+  }
+
+  .notebook__page {
+    top: 10px;
+    left: 28px;
+    right: 8px;
+    bottom: 10px;
+    padding-top: 20px; /* Pushes lines below the "Notes" label */
+  }
+
+  .notebook__line {
+    height: 2px;
+    margin-bottom: 14px;
+  }
+
+  .notebook__label {
+    top: 10px;
+    font-size: 10px;
+  }
+}
