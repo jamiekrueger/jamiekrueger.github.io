@@ -539,6 +539,232 @@ html, body {
     linear-gradient(#ccc, #ccc) 20% 100% / 0.15vw 0.6vw no-repeat;
 }
 
+/* ===== VS Code Scrolling Code Animation ===== */
+/* Covers the editor content area with an opaque background,
+   hiding the static code lines in ::after beneath it.
+   overflow:hidden clips the tall scrolling ::before to the visible area. */
+.code-scroll {
+  position: absolute;
+  top: 8%;
+  left: 20%;
+  right: 4%;
+  height: 6.5vw;
+  overflow: hidden;
+  z-index: 2;
+  background: #0a0a18;
+}
+
+/* Opaque cover at the bottom of the editor — hides line 11 from the
+   scrolling ::before so only the clip-path typing reveal is visible there.
+   Sits above ::before (auto) but below .code-typing (z-index: 3). */
+.code-scroll::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0.35vw;
+  background: #0a0a18;
+  z-index: 2;
+}
+
+/* Tall strip of code lines (20 lines = 10 unique × 2 for seamless loop).
+   Scrolls upward in discrete steps — when it reaches -50%, the visual
+   is identical to 0%, so the loop resets invisibly. */
+.code-scroll::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 12vw;
+  animation: scroll-code 30s infinite;
+  background:
+    /* Line numbers 1-10 */
+    linear-gradient(#555, #555) 0 0.3vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 0.9vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 1.5vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 2.1vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 2.7vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 3.3vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 3.9vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 4.5vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 5.1vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 5.7vw / 3% 0.15vw no-repeat,
+    /* Line numbers 11-20 (duplicate, offset +6vw) */
+    linear-gradient(#555, #555) 0 6.3vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 6.9vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 7.5vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 8.1vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 8.7vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 9.3vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 9.9vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 10.5vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 11.1vw / 3% 0.15vw no-repeat,
+    linear-gradient(#555, #555) 0 11.7vw / 3% 0.15vw no-repeat,
+    /* Lines 1-10 */
+    linear-gradient(#c586c0, #c586c0) 5% 0.3vw / 12% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 19% 0.3vw / 18% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 40% 0.3vw / 10% 0.15vw no-repeat,
+    linear-gradient(#4ec994, #4ec994) 5% 0.9vw / 8% 0.15vw no-repeat,
+    linear-gradient(#ce9178, #ce9178) 15% 0.9vw / 30% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 8% 1.5vw / 10% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 20% 1.5vw / 14% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 37% 1.5vw / 20% 0.15vw no-repeat,
+    linear-gradient(#c586c0, #c586c0) 8% 2.1vw / 8% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 18% 2.1vw / 22% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 5% 2.7vw / 15% 0.15vw no-repeat,
+    linear-gradient(#b5cea8, #b5cea8) 22% 2.7vw / 8% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 8% 3.3vw / 18% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 28% 3.3vw / 25% 0.15vw no-repeat,
+    linear-gradient(#c586c0, #c586c0) 5% 3.9vw / 10% 0.15vw no-repeat,
+    linear-gradient(#ce9178, #ce9178) 17% 3.9vw / 35% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 5% 4.5vw / 12% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 19% 4.5vw / 16% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 8% 5.1vw / 20% 0.15vw no-repeat,
+    linear-gradient(#b5cea8, #b5cea8) 30% 5.1vw / 12% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 5% 5.7vw / 6% 0.15vw no-repeat,
+    /* Lines 11-20 (duplicate, offset +6vw for seamless loop) */
+    linear-gradient(#c586c0, #c586c0) 5% 6.3vw / 12% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 19% 6.3vw / 18% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 40% 6.3vw / 10% 0.15vw no-repeat,
+    linear-gradient(#4ec994, #4ec994) 5% 6.9vw / 8% 0.15vw no-repeat,
+    linear-gradient(#ce9178, #ce9178) 15% 6.9vw / 30% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 8% 7.5vw / 10% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 20% 7.5vw / 14% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 37% 7.5vw / 20% 0.15vw no-repeat,
+    linear-gradient(#c586c0, #c586c0) 8% 8.1vw / 8% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 18% 8.1vw / 22% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 5% 8.7vw / 15% 0.15vw no-repeat,
+    linear-gradient(#b5cea8, #b5cea8) 22% 8.7vw / 8% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 8% 9.3vw / 18% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 28% 9.3vw / 25% 0.15vw no-repeat,
+    linear-gradient(#c586c0, #c586c0) 5% 9.9vw / 10% 0.15vw no-repeat,
+    linear-gradient(#ce9178, #ce9178) 17% 9.9vw / 35% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 5% 10.5vw / 12% 0.15vw no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 19% 10.5vw / 16% 0.15vw no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 8% 11.1vw / 20% 0.15vw no-repeat,
+    linear-gradient(#b5cea8, #b5cea8) 30% 11.1vw / 12% 0.15vw no-repeat,
+    linear-gradient(#569cd6, #569cd6) 5% 11.7vw / 6% 0.15vw no-repeat;
+}
+
+/* Discrete scroll: hold while typing, then shift up one line (0.6vw).
+   Shift syncs with typing hide at 9.5% of each phase.
+   At 100% (-6vw), the visual matches 0% because lines 11-20 = lines 1-10. */
+@keyframes scroll-code {
+  0%, 9.5%    { transform: translateY(0); }
+  10%, 19.5%  { transform: translateY(-0.6vw); }
+  20%, 29.5%  { transform: translateY(-1.2vw); }
+  30%, 39.5%  { transform: translateY(-1.8vw); }
+  40%, 49.5%  { transform: translateY(-2.4vw); }
+  50%, 59.5%  { transform: translateY(-3.0vw); }
+  60%, 69.5%  { transform: translateY(-3.6vw); }
+  70%, 79.5%  { transform: translateY(-4.2vw); }
+  80%, 89.5%  { transform: translateY(-4.8vw); }
+  90%, 99.5%  { transform: translateY(-5.4vw); }
+  100%        { transform: translateY(-6.0vw); }
+}
+
+/* Typing line — reveals syntax-colored code left-to-right via clip-path.
+   Two synced animations: clip for the reveal, bg for cycling line colors.
+   Background changes while clip is at 100% (hidden), so the swap is invisible. */
+/* Static line number for the typing line — always visible, not clipped */
+.code-typing-num {
+  position: absolute;
+  z-index: 3;
+  bottom: 0.05vw;
+  left: 0;
+  width: 3%;
+  height: 0.15vw;
+  background: #555;
+}
+
+.code-typing {
+  position: absolute;
+  z-index: 3;
+  bottom: 0.05vw;
+  left: 0;
+  width: 100%;
+  height: 0.15vw;
+  animation:
+    code-type-clip 30s infinite,
+    code-type-bg 30s step-end infinite;
+}
+
+/* Clip-path reveal: smoothly reveals each line, holds, then snaps hidden.
+   Per-keyframe timing functions control each phase:
+   linear = smooth reveal (typing), step-end = hold then snap (pause + hide) */
+@keyframes code-type-clip {
+  0%    { clip-path: inset(0 100% 0 0); animation-timing-function: linear; }
+  8%    { clip-path: inset(0 40% 0 0);  animation-timing-function: step-end; }
+  9.5%  { clip-path: inset(0 100% 0 0); animation-timing-function: step-start; }
+  10%   { clip-path: inset(0 100% 0 0); animation-timing-function: linear; }
+  18%   { clip-path: inset(0 40% 0 0);  animation-timing-function: step-end; }
+  19.5% { clip-path: inset(0 100% 0 0); animation-timing-function: step-start; }
+  20%   { clip-path: inset(0 100% 0 0); animation-timing-function: linear; }
+  28%   { clip-path: inset(0 40% 0 0);  animation-timing-function: step-end; }
+  29.5% { clip-path: inset(0 100% 0 0); animation-timing-function: step-start; }
+  30%   { clip-path: inset(0 100% 0 0); animation-timing-function: linear; }
+  38%   { clip-path: inset(0 40% 0 0);  animation-timing-function: step-end; }
+  39.5% { clip-path: inset(0 100% 0 0); animation-timing-function: step-start; }
+  40%   { clip-path: inset(0 100% 0 0); animation-timing-function: linear; }
+  48%   { clip-path: inset(0 40% 0 0);  animation-timing-function: step-end; }
+  49.5% { clip-path: inset(0 100% 0 0); animation-timing-function: step-start; }
+  50%   { clip-path: inset(0 100% 0 0); animation-timing-function: linear; }
+  58%   { clip-path: inset(0 40% 0 0);  animation-timing-function: step-end; }
+  59.5% { clip-path: inset(0 100% 0 0); animation-timing-function: step-start; }
+  60%   { clip-path: inset(0 100% 0 0); animation-timing-function: linear; }
+  68%   { clip-path: inset(0 40% 0 0);  animation-timing-function: step-end; }
+  69.5% { clip-path: inset(0 100% 0 0); animation-timing-function: step-start; }
+  70%   { clip-path: inset(0 100% 0 0); animation-timing-function: linear; }
+  78%   { clip-path: inset(0 40% 0 0);  animation-timing-function: step-end; }
+  79.5% { clip-path: inset(0 100% 0 0); animation-timing-function: step-start; }
+  80%   { clip-path: inset(0 100% 0 0); animation-timing-function: linear; }
+  88%   { clip-path: inset(0 40% 0 0);  animation-timing-function: step-end; }
+  89.5% { clip-path: inset(0 100% 0 0); animation-timing-function: step-start; }
+  90%   { clip-path: inset(0 100% 0 0); animation-timing-function: linear; }
+  98%   { clip-path: inset(0 40% 0 0);  animation-timing-function: step-end; }
+  99.5%, 100% { clip-path: inset(0 100% 0 0); }
+}
+
+/* Background cycles through each line's syntax colors using the same
+   positioned-background-layer technique as the static scrolling lines.
+   This ensures the typed line looks identical to the static lines.
+   step-end timing snaps to the next while the clip is hidden. */
+@keyframes code-type-bg {
+  0%  { background:
+    linear-gradient(#c586c0, #c586c0) 5% 0 / 12% 100% no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 19% 0 / 18% 100% no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 40% 0 / 10% 100% no-repeat; }
+  10% { background:
+    linear-gradient(#4ec994, #4ec994) 5% 0 / 8% 100% no-repeat,
+    linear-gradient(#ce9178, #ce9178) 15% 0 / 30% 100% no-repeat; }
+  20% { background:
+    linear-gradient(#569cd6, #569cd6) 8% 0 / 10% 100% no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 20% 0 / 14% 100% no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 37% 0 / 20% 100% no-repeat; }
+  30% { background:
+    linear-gradient(#c586c0, #c586c0) 8% 0 / 8% 100% no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 18% 0 / 22% 100% no-repeat; }
+  40% { background:
+    linear-gradient(#569cd6, #569cd6) 5% 0 / 15% 100% no-repeat,
+    linear-gradient(#b5cea8, #b5cea8) 22% 0 / 8% 100% no-repeat; }
+  50% { background:
+    linear-gradient(#dcdcaa, #dcdcaa) 8% 0 / 18% 100% no-repeat,
+    linear-gradient(#9cdcfe, #9cdcfe) 28% 0 / 25% 100% no-repeat; }
+  60% { background:
+    linear-gradient(#c586c0, #c586c0) 5% 0 / 10% 100% no-repeat,
+    linear-gradient(#ce9178, #ce9178) 17% 0 / 35% 100% no-repeat; }
+  70% { background:
+    linear-gradient(#569cd6, #569cd6) 5% 0 / 12% 100% no-repeat,
+    linear-gradient(#dcdcaa, #dcdcaa) 19% 0 / 16% 100% no-repeat; }
+  80% { background:
+    linear-gradient(#9cdcfe, #9cdcfe) 8% 0 / 20% 100% no-repeat,
+    linear-gradient(#b5cea8, #b5cea8) 30% 0 / 12% 100% no-repeat; }
+  90% { background:
+    linear-gradient(#569cd6, #569cd6) 5% 0 / 6% 100% no-repeat; }
+}
+
 .monitor__neck {
   width: 10%;
   height: 1.2vw;
