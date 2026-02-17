@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jamie Krueger</title>
+    <title>jamiekrueger.dev</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -11,10 +11,13 @@
 </head>
 <body>
     <div class="scene">
+      <!-- 16:9 wrapper — keeps room proportional on non-16:9 viewports -->
+      <div class="room-content">
+        <h1 class="site-title">jamiekrueger.dev</h1>
         <div class="wall">
-            <div class="window">
+            <!-- <div class="window">
                 <div class="window__mountains"></div>
-            </div>
+            </div> -->
         </div>
         <div class="floor"></div>
 
@@ -37,7 +40,7 @@
                 <div class="mouse"></div>
 
                 <!-- MTG Card -->
-                <a href="/mtg-generator/" class="desk-object mtg-card" aria-label="MTG Generator">
+                <a href="/mtg/" class="desk-object mtg-card" aria-label="MTG">
                     <div class="mtg-card__back">
                         <div class="mtg-card__oval"></div>
                     </div>
@@ -90,11 +93,14 @@
         <div class="chair-person">
             <div class="person__head"></div>
             <div class="person__body"></div>
+            <div class="person__arm person__arm--left"></div>
+            <div class="person__arm person__arm--right"></div>
             <div class="chair__back"></div>
             <div class="chair__seat"></div>
             <div class="chair__post"></div>
             <div class="chair__base"></div>
         </div>
+      </div>
     </div>
 </body>
 </html>
