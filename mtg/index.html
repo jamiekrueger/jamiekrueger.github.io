@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jumpstart Packing List — jamiekrueger.dev</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Open+Sans:wght@400;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Press Start 2P', monospace;
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: grayscale;
+            background: #e8e8e8;
+            color: #3b2a1a;
+        }
+
+        /* ===== Nav Bar ===== */
+        .nav {
+            background: linear-gradient(180deg, #5c3d2e 0%, #4a3020 100%);
+            border-bottom: 3px solid;
+            border-color: #3a2214;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav a {
+            color: #f0ead4;
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: color 0.15s ease;
+        }
+
+        .nav a:hover {
+            color: #fff;
+        }
+
+        .nav h1 {
+            color: #f0ead4;
+            font-size: 0.75rem;
+            flex: 1;
+        }
+
+        /* ===== Main Content ===== */
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+            color: #4a3020;
+        }
+
+        /* ===== Theme Input ===== */
+        .theme-input {
+            width: 100%;
+            padding: 0.65rem 1rem;
+            margin-bottom: 1.25rem;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.6rem;
+            background: #f0ead4;
+            color: #3b2a1a;
+            border: 3px solid;
+            border-color: #6e4a3a #3a2214 #3a2214 #6e4a3a;
+        }
+
+        .theme-input::placeholder {
+            color: #8a7a6a;
+        }
+
+        .theme-input:focus {
+            outline: 2px solid #5c3d2e;
+            outline-offset: 1px;
+        }
+
+        /* ===== Textarea ===== */
+        .decklist-input {
+            width: 100%;
+            min-height: 220px;
+            padding: 1rem;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.55rem;
+            line-height: 1.8;
+            background: #f0ead4;
+            color: #3b2a1a;
+            border: 3px solid;
+            border-color: #6e4a3a #3a2214 #3a2214 #6e4a3a;
+            resize: vertical;
+        }
+
+        .decklist-input::placeholder {
+            color: #8a7a6a;
+        }
+
+        .decklist-input:focus {
+            outline: 2px solid #5c3d2e;
+            outline-offset: 1px;
+        }
+
+        /* ===== Button ===== */
+        .btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.6rem;
+            color: #f0ead4;
+            background: linear-gradient(180deg, #5c3d2e 0%, #4a3020 100%);
+            border: 3px solid;
+            border-color: #6e4a3a #3a2214 #3a2214 #6e4a3a;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 2px 4px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ===== Status Area ===== */
+        .status {
+            margin-top: 1rem;
+            font-size: 0.5rem;
+            line-height: 1.8;
+            min-height: 1.5rem;
+        }
+
+        .status--error {
+            color: #c04040;
+        }
+
+        .status--warning {
+            color: #a07020;
+        }
+
+        .status--info {
+            color: #4a3020;
+        }
+
+        /* ===== Output Section ===== */
+        .output {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .output.visible {
+            display: block;
+        }
+
+        .canvas-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+
+        #card-canvas {
+            border: 4px solid;
+            border-color: #6e4a3a #3a2214 #3a2214 #6e4a3a;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+            max-width: 100%;
+            height: auto;
+        }
+
+        .download-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .btn-download {
+            text-decoration: none;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 640px) {
+            .nav {
+                padding: 0.75rem 1rem;
+                gap: 1rem;
+            }
+
+            .nav a, .nav h1 {
+                font-size: 0.55rem;
+            }
+
+            .container {
+                padding: 1.5rem 1rem;
+            }
+
+            .decklist-input {
+                min-height: 180px;
+                font-size: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/">&lt; Home</a>
+        <h1>Jumpstart Packing List</h1>
+    </nav>
+
+    <main class="container">
+        <label for="theme-name">Theme name:</label>
+        <input
+            id="theme-name"
+            class="theme-input"
+            type="text"
+            placeholder="e.g. Goblins, Elves, Lightning"
+            spellcheck="false"
+        >
+
+        <label for="decklist">Paste your decklist below:</label>
+        <textarea
+            id="decklist"
+            class="decklist-input"
+            placeholder="1x Lightning Bolt
+2 Counterspell
+1x Llanowar Elves
+4 Forest
+..."
+            spellcheck="false"
+        ></textarea>
+
+        <button id="generate-btn" class="btn" type="button">Generate</button>
+
+        <div id="status" class="status" aria-live="polite"></div>
+
+        <section id="output" class="output">
+            <div class="canvas-wrapper">
+                <canvas id="card-canvas" width="745" height="1040"></canvas>
+            </div>
+            <div class="download-row">
+                <a id="download-btn" class="btn btn-download" download="packing-list.png">Download PNG</a>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const TYPE_PRIORITY = [
+            'Creature', 'Planeswalker', 'Battle', 'Instant',
+            'Sorcery', 'Enchantment', 'Artifact', 'Land'
+        ];
+
+        const generateBtn = document.getElementById('generate-btn');
+        const statusEl = document.getElementById('status');
+        const outputEl = document.getElementById('output');
+        const canvas = document.getElementById('card-canvas');
+        const downloadBtn = document.getElementById('download-btn');
+        const decklistEl = document.getElementById('decklist');
+        const themeEl = document.getElementById('theme-name');
+
+        generateBtn.addEventListener('click', run);
+
+        async function run() {
+            clearStatus();
+            outputEl.classList.remove('visible');
+            generateBtn.disabled = true;
+
+            try {
+                const raw = decklistEl.value.trim();
+                if (!raw) {
+                    showStatus('Please paste a decklist first.', 'error');
+                    return;
+                }
+
+                const cards = parseDecklist(raw);
+                if (cards.length === 0) {
+                    showStatus('No valid card lines found. Use format: "1x Card Name" or "1 Card Name".', 'error');
+                    return;
+                }
+
+                showStatus('Looking up card types...', 'info');
+                const { found, notFound } = await fetchCardTypes(cards);
+
+                if (found.length === 0) {
+                    showStatus('None of the cards were found on Scryfall. Check spelling and try again.', 'error');
+                    return;
+                }
+
+                if (notFound.length > 0) {
+                    showStatus(
+                        'Warning: ' + notFound.length + ' card(s) not found: ' +
+                        notFound.join(', ') + '. They will appear under "Unknown".',
+                        'warning'
+                    );
+                }
+
+                const groups = groupByType(found, notFound, cards);
+                const title = themeEl.value.trim() || 'Packing List';
+                const overflow = await renderCard(groups, title);
+
+                outputEl.classList.add('visible');
+                downloadBtn.href = canvas.toDataURL('image/png');
+
+                if (overflow) {
+                    appendStatus(' List too long for card — some entries were cut off.', 'warning');
+                } else if (notFound.length === 0) {
+                    showStatus('Done!', 'info');
+                }
+            } catch (err) {
+                showStatus('Error: ' + (err.message || 'Something went wrong.'), 'error');
+            } finally {
+                generateBtn.disabled = false;
+            }
+        }
+
+        /* ===== Phase 1: Parse Decklist ===== */
+        function parseDecklist(raw) {
+            const lines = raw.split(/\r?\n/);
+            const skipPattern = /^(\/\/|#|deck\b|sideboard\b|commander\b|companion\b|maybeboard\b)/i;
+            const linePattern = /^(\d+)x?\s+(.+)$/;
+            const consolidated = new Map();
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || skipPattern.test(trimmed)) continue;
+
+                const match = trimmed.match(linePattern);
+                let qty, name;
+
+                if (match) {
+                    qty = parseInt(match[1], 10);
+                    name = match[2].trim();
+                } else {
+                    // Line with no leading number — treat as qty 1
+                    // but skip if it looks like a section header (single word followed by nothing)
+                    if (/^[a-z]+$/i.test(trimmed) && trimmed.length < 20) continue;
+                    qty = 1;
+                    name = trimmed;
+                }
+
+                if (!name) continue;
+                const key = name.toLowerCase();
+                consolidated.set(key, {
+                    name: consolidated.has(key) ? consolidated.get(key).name : name,
+                    qty: (consolidated.get(key)?.qty || 0) + qty
+                });
+            }
+
+            return Array.from(consolidated.values());
+        }
+
+        /* ===== Phase 2: Scryfall Lookup ===== */
+        async function fetchCardTypes(cards) {
+            const names = [...new Set(cards.map(c => c.name))];
+            const BATCH_SIZE = 75;
+            const found = new Map();
+            const notFound = [];
+
+            for (let i = 0; i < names.length; i += BATCH_SIZE) {
+                if (i > 0) await sleep(100);
+
+                const batch = names.slice(i, i + BATCH_SIZE);
+                const body = {
+                    identifiers: batch.map(name => ({ name }))
+                };
+
+                const resp = await fetch('https://api.scryfall.com/cards/collection', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (!resp.ok) {
+                    throw new Error('Scryfall API returned status ' + resp.status);
+                }
+
+                const data = await resp.json();
+
+                if (data.data) {
+                    for (const card of data.data) {
+                        found.set(card.name.toLowerCase(), {
+                            typeLine: card.type_line,
+                            manaCost: card.mana_cost || ''
+                        });
+                    }
+                }
+
+                if (data.not_found) {
+                    for (const nf of data.not_found) {
+                        notFound.push(nf.name);
+                    }
+                }
+            }
+
+            return {
+                found: cards.filter(c => found.has(c.name.toLowerCase())).map(c => {
+                    const info = found.get(c.name.toLowerCase());
+                    return { ...c, typeLine: info.typeLine, manaCost: info.manaCost };
+                }),
+                notFound
+            };
+        }
+
+        /* ===== Phase 3: Group by Type ===== */
+        function groupByType(foundCards, notFoundNames, allCards) {
+            const groups = new Map();
+
+            for (const card of foundCards) {
+                const type = extractPrimaryType(card.typeLine);
+                if (!groups.has(type)) groups.set(type, []);
+                groups.get(type).push(card);
+            }
+
+            // Sort each group alphabetically by card name
+            for (const cards of groups.values()) {
+                cards.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            // Add not-found cards under "Unknown"
+            if (notFoundNames.length > 0) {
+                const unknownCards = allCards.filter(c =>
+                    notFoundNames.some(nf => nf.toLowerCase() === c.name.toLowerCase())
+                );
+                if (unknownCards.length > 0) {
+                    groups.set('Unknown', unknownCards.map(c => ({ ...c, typeLine: 'Unknown', manaCost: '' })));
+                }
+            }
+
+            // Sort groups by priority
+            const sorted = [];
+            for (const type of TYPE_PRIORITY) {
+                if (groups.has(type)) sorted.push([type, groups.get(type)]);
+            }
+            // Append any types not in the priority list (shouldn't happen, but safety)
+            for (const [type, cards] of groups) {
+                if (!TYPE_PRIORITY.includes(type) && type !== 'Unknown') {
+                    sorted.push([type, cards]);
+                }
+            }
+            // Unknown always last
+            if (groups.has('Unknown')) sorted.push(['Unknown', groups.get('Unknown')]);
+
+            return sorted;
+        }
+
+        function extractPrimaryType(typeLine) {
+            // Take the first face for double-faced cards
+            const face = typeLine.split('//')[0].trim();
+            // Take part before em dash for subtypes
+            const mainPart = face.split(/\u2014/)[0].trim();
+            const words = mainPart.split(/\s+/);
+
+            // "Artifact Creature" → Creature wins
+            // Check in priority order — first match wins
+            for (const type of TYPE_PRIORITY) {
+                if (words.some(w => w.toLowerCase() === type.toLowerCase())) {
+                    // Creature beats Artifact if both present
+                    if (type === 'Artifact' && words.some(w => w.toLowerCase() === 'creature')) {
+                        continue;
+                    }
+                    return type;
+                }
+            }
+
+            return 'Unknown';
+        }
+
+        /* ===== Mana Symbol Helpers ===== */
+        function parseManaCost(manaCost) {
+            // "{2}{R}{R}" → ["2", "R", "R"]
+            if (!manaCost) return [];
+            return Array.from(manaCost.matchAll(/\{([^}]+)\}/g), m => m[1]);
+        }
+
+        const symbolCache = new Map();
+
+        function loadSymbol(key) {
+            if (symbolCache.has(key)) return symbolCache.get(key);
+            const promise = new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null); // Silently skip missing symbols
+                img.src = '/mtg/symbols/' + encodeURIComponent(key) + '.svg';
+            });
+            symbolCache.set(key, promise);
+            return promise;
+        }
+
+        async function preloadSymbols(groups) {
+            const allSymbols = new Set();
+            for (const [, cards] of groups) {
+                for (const card of cards) {
+                    for (const sym of parseManaCost(card.manaCost)) {
+                        allSymbols.add(sym);
+                    }
+                }
+            }
+            await Promise.all([...allSymbols].map(s => loadSymbol(s)));
+        }
+
+        /* ===== Phase 4: Canvas Rendering ===== */
+        const FONT_HEADING = '"Barlow Semi Condensed", sans-serif';
+        const FONT_BODY = '"Open Sans", sans-serif';
+        const SYMBOL_SIZE = 18;
+
+        async function renderCard(groups, title) {
+            const W = 745;
+            const H = 1040;
+            const ctx = canvas.getContext('2d');
+
+            await document.fonts.ready;
+            await preloadSymbols(groups);
+
+            const B = 32; // Black border all sides
+
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, W, H);
+
+            // Inner card area
+            const innerW = W - B * 2;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(B, B, innerW, H - B * 2);
+
+            const MARGIN_X = B + 28;
+            const MAX_X = W - B - 28;
+            const ROW_H = 30;
+            let y = B + 52;
+            let overflow = false;
+            const FOOTER_ZONE = H - B - 40;
+            let rowIndex = 0; // For alternating row colors
+
+            // Title
+            ctx.fillStyle = '#222222';
+            ctx.font = 'bold 34px ' + FONT_HEADING;
+            ctx.textAlign = 'center';
+            const truncTitle = truncateText(ctx, title.toUpperCase(), innerW - 56);
+            ctx.fillText(truncTitle, W / 2, y);
+            y += 16;
+
+            // Divider line
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(MARGIN_X, y);
+            ctx.lineTo(MAX_X, y);
+            ctx.stroke();
+            y += 30;
+
+            ctx.textAlign = 'left';
+
+            for (const [type, cards] of groups) {
+                if (y > FOOTER_ZONE) { overflow = true; break; }
+
+                const totalQty = cards.reduce((sum, c) => sum + c.qty, 0);
+
+                // Type heading
+                ctx.fillStyle = '#e83411';
+                ctx.font = 'bold 28px ' + FONT_HEADING;
+                const heading = type.toUpperCase() + ' (' + totalQty + ')';
+                ctx.fillText(heading, MARGIN_X, y);
+                y += 10;
+
+                // Thin line under heading
+                ctx.strokeStyle = '#e83411';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(MARGIN_X, y);
+                ctx.lineTo(MAX_X, y);
+                ctx.stroke();
+                y += 22;
+
+                // Card entries
+                rowIndex = 0;
+                for (const card of cards) {
+                    if (y > FOOTER_ZONE) { overflow = true; break; }
+
+                    // Alternating row background (aligned with content area)
+                    const rowBg = rowIndex % 2 === 0 ? '#ecf1f6' : '#ffffff';
+                    ctx.fillStyle = rowBg;
+                    ctx.fillRect(MARGIN_X, y - ROW_H + 8, MAX_X - MARGIN_X, ROW_H);
+                    rowIndex++;
+
+                    // Calculate mana symbol space on the right
+                    const symbols = parseManaCost(card.manaCost);
+                    const symbolsWidth = symbols.length > 0
+                        ? symbols.length * (SYMBOL_SIZE + 3) - 3
+                        : 0;
+
+                    const PAD = 14; // Inner padding for card rows
+                    const qtyStr = card.qty + ' ';
+
+                    // Draw quantity in bold
+                    ctx.font = 'bold 22px ' + FONT_BODY;
+                    ctx.fillStyle = '#43484f';
+                    ctx.fillText(qtyStr, MARGIN_X + PAD, y);
+                    const qtyWidth = ctx.measureText(qtyStr).width;
+
+                    // Draw card name in regular weight, leaving room for symbols
+                    ctx.font = '22px ' + FONT_BODY;
+                    ctx.fillStyle = '#43484f';
+                    const nameX = MARGIN_X + PAD + qtyWidth;
+                    const nameMaxWidth = MAX_X - PAD - nameX - symbolsWidth - (symbolsWidth > 0 ? 6 : 0);
+                    const truncName = truncateText(ctx, card.name, nameMaxWidth);
+                    ctx.fillText(truncName, nameX, y);
+
+                    // Draw mana symbols right-aligned with padding
+                    let symX = MAX_X - PAD - symbolsWidth;
+                    for (const sym of symbols) {
+                        const img = await symbolCache.get(sym);
+                        if (img) {
+                            ctx.drawImage(img, symX, y - SYMBOL_SIZE + 3, SYMBOL_SIZE, SYMBOL_SIZE);
+                        }
+                        symX += SYMBOL_SIZE + 3;
+                    }
+
+                    y += ROW_H;
+                }
+
+                y += 12; // Gap between groups
+            }
+
+
+            return overflow;
+        }
+
+        function truncateText(ctx, text, maxWidth) {
+            if (ctx.measureText(text).width <= maxWidth) return text;
+            let truncated = text;
+            while (truncated.length > 0 && ctx.measureText(truncated + '...').width > maxWidth) {
+                truncated = truncated.slice(0, -1);
+            }
+            return truncated + '...';
+        }
+
+        /* ===== Helpers ===== */
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function showStatus(msg, type) {
+            statusEl.textContent = msg;
+            statusEl.className = 'status status--' + type;
+        }
+
+        function appendStatus(msg, type) {
+            statusEl.textContent += msg;
+            statusEl.className = 'status status--' + type;
+        }
+
+        function clearStatus() {
+            statusEl.textContent = '';
+            statusEl.className = 'status';
+        }
+    </script>
+</body>
+</html>
