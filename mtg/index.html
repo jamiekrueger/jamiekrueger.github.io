@@ -61,6 +61,12 @@
         .hidden { display: none !important; }
 
         /* ===== App Layout ===== */
+        .app-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
         .app {
             flex: 1;
             overflow: auto;
@@ -70,6 +76,7 @@
             justify-content: flex-start;
             background: #ddd8cc;
             padding: 1.5rem;
+            padding-bottom: 3rem;
             gap: 1rem;
         }
 
@@ -457,11 +464,6 @@
             text-decoration: none;
         }
 
-        /* ===== Download Row ===== */
-        .download-row {
-            margin-top: 0.5rem;
-        }
-
         /* ===== Status Area ===== */
         .status {
             margin-top: 0.75rem;
@@ -484,6 +486,281 @@
             color: #4a3020;
         }
 
+        /* ===== Download Row (flex for multiple buttons) ===== */
+        .download-row {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        /* ===== Sheet Panel (Right Sidebar) ===== */
+        .sheet-panel {
+            position: relative;
+            width: 0;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            background: #513527;
+            border-left: none;
+            overflow: visible;
+            transition: width 0.2s ease;
+        }
+
+        .sheet-panel.expanded {
+            width: 420px;
+            border-left: 3px solid #3a2214;
+        }
+
+        .sheet-toggle-btn {
+            position: absolute;
+            right: 100%;
+            top: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.75rem 0.5rem;
+            background: #513527;
+            border: 2px solid #3a2214;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            color: #f0ead4;
+            font-size: 1.5rem;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background 0.15s ease;
+            z-index: 1;
+        }
+
+        .sheet-toggle-btn:hover {
+            background: #5c3d2e;
+        }
+
+        .sheet-toggle-chevron {
+            font-size: 0.7rem;
+            transition: transform 0.2s ease;
+        }
+
+        .sheet-panel.expanded .sheet-toggle-chevron {
+            transform: rotate(180deg);
+        }
+
+        .sheet-toggle-close {
+            display: none;
+        }
+
+        .sheet-body {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sheet-panel.expanded .sheet-body {
+            display: flex;
+        }
+
+        .sheet-header {
+            padding: 1rem;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.75rem;
+            color: #f0ead4;
+            border-bottom: 1px solid #6e4a3a;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sheet-header-icon {
+            display: none;
+        }
+
+        .sheet-header-close {
+            display: none;
+        }
+
+        .sheet-count {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.65rem;
+            color: #a08060;
+        }
+
+        .sheet-slots {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .sheet-slot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .sheet-drop {
+            width: 130px;
+            height: 182px;
+            border: 2px dashed #6e4a3a;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.5rem;
+            color: #a08060;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .sheet-drop.filled {
+            border-style: solid;
+            border-color: #6e4a3a;
+        }
+
+        .sheet-drop img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 2px;
+            cursor: grab;
+        }
+
+        .sheet-drop img:active {
+            cursor: grabbing;
+        }
+
+        .sheet-drop.drag-over {
+            border-color: #f0ead4;
+            background: rgba(240, 234, 212, 0.15);
+            box-shadow: 0 0 6px rgba(240, 234, 212, 0.3);
+        }
+
+        .sheet-drop-new {
+            border: 2px dashed transparent;
+            border-radius: 6px;
+            min-height: 40px;
+            flex-shrink: 0;
+        }
+
+        .sheet-drop-new.drag-over {
+            min-height: 198px;
+            border-color: #f0ead4;
+            background: rgba(240, 234, 212, 0.15);
+        }
+
+        .sheet-slot-remove {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #c04040;
+            color: #fff;
+            border: none;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            flex-shrink: 0;
+            margin-left: auto;
+            margin-right: 16px;
+        }
+
+        .sheet-slot-remove:hover {
+            background: #d04040;
+        }
+
+        .dragging {
+            opacity: 0.5;
+        }
+
+        .sheet-controls {
+            padding: 1rem;
+            border-top: 1px solid #6e4a3a;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        .sheet-controls-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .sheet-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.55rem;
+            color: #f0ead4;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .sheet-label select {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.55rem;
+            padding: 0.35rem 0.5rem;
+            background: #f0ead4;
+            color: #3b2a1a;
+            border: 1px solid #3a2214;
+            border-radius: 3px;
+        }
+
+        .sheet-checkbox {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.5rem;
+            color: #f0ead4;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            cursor: pointer;
+        }
+
+        .sheet-checkbox input[type="checkbox"] {
+            accent-color: #5c3d2e;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .sheet-number-input {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.5rem;
+            width: 55px;
+            padding: 0.3rem 0.4rem;
+            background: #f0ead4;
+            color: #3b2a1a;
+            border: 1px solid #3a2214;
+            border-radius: 3px;
+            text-align: center;
+        }
+
+        .sheet-btn {
+            font-size: 0.55rem;
+            padding: 0.6rem 1rem;
+        }
+
+        .sheet-empty-msg {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.45rem;
+            color: #a08060;
+            text-align: center;
+            padding: 0.5rem;
+        }
+
         /* ===== Responsive: Mobile ===== */
         @media (max-width: 768px) {
             html, body {
@@ -499,9 +776,70 @@
                 font-size: 0.55rem;
             }
 
+            .app-layout {
+                flex-direction: column;
+            }
+
             .app {
                 padding: 1rem;
                 justify-content: flex-start;
+            }
+
+            .sheet-panel {
+                position: fixed;
+                bottom: 0;
+                right: 0;
+                left: auto;
+                width: auto;
+                height: auto;
+                background: transparent;
+                border: none;
+                z-index: 100;
+                transition: none;
+                overflow: visible;
+            }
+
+            .sheet-toggle-btn {
+                position: static;
+                flex-direction: row;
+                border: 2px solid #3a2214;
+                border-bottom: none;
+                border-right: 2px solid #3a2214;
+                border-radius: 8px 8px 0 0;
+                box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2);
+            }
+
+            .sheet-toggle-chevron {
+                display: none;
+            }
+
+            .sheet-panel.expanded {
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: #513527;
+                border-top: 3px solid #3a2214;
+                overflow-y: auto;
+            }
+
+            .sheet-panel.expanded .sheet-toggle-btn {
+                display: none;
+            }
+
+            .sheet-panel.expanded .sheet-header-icon {
+                display: inline;
+                font-size: 1.2rem;
+            }
+
+            .sheet-panel.expanded .sheet-header-close {
+                display: inline;
+                margin-left: auto;
+                background: none;
+                border: none;
+                color: #f0ead4;
+                font-size: 1.2rem;
+                cursor: pointer;
+                padding: 0.25rem;
             }
 
             .card-columns {
@@ -530,6 +868,7 @@
             }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <nav class="nav">
@@ -537,6 +876,7 @@
         <h1>Jumpstart Tools</h1>
     </nav>
 
+    <div class="app-layout">
     <main class="app">
         <input
             id="theme-name"
@@ -566,6 +906,7 @@
                     <div class="card-actions">
                         <button id="packing-edit-btn" class="btn" type="button">Edit</button>
                         <a id="packing-download" class="btn btn-download" download="packing-list.png">Download PNG</a>
+                        <button id="packing-sheet-btn" class="btn" type="button">Add to Sheet</button>
                     </div>
                 </div>
             </div>
@@ -619,13 +960,61 @@
                 </div>
                 <div class="download-row hidden" id="theme-download-row">
                     <a id="theme-download" class="btn btn-download" download="theme-card.png">Download PNG</a>
+                    <button id="theme-sheet-btn" class="btn" type="button">Add to Sheet</button>
                 </div>
                 <canvas id="theme-canvas" class="hidden" width="745" height="1040"></canvas>
             </div>
 
         </div>
+        <button id="pair-sheet-btn" class="btn hidden" type="button">Add Pair to Sheet</button>
         <div id="status" class="status" aria-live="polite"></div>
     </main>
+
+    <aside id="sheet-panel" class="sheet-panel">
+        <button class="sheet-toggle-btn" id="sheet-toggle" type="button" title="Print Sheet">
+            <span class="sheet-toggle-chevron">&#x276E;</span><span class="sheet-toggle-close">&#x2715;</span>&#x1F5B6;<span id="sheet-count" class="sheet-count">(0)</span>
+        </button>
+        <div class="sheet-body">
+            <div class="sheet-header">
+                <span class="sheet-header-icon">&#x1F5B6;</span>
+                Print Sheet
+                <button class="sheet-header-close" id="sheet-close" type="button" title="Close">&#x2715;</button>
+            </div>
+            <div id="sheet-slots" class="sheet-slots"></div>
+            <div class="sheet-controls">
+                <div class="sheet-controls-row">
+                    <label class="sheet-label">
+                        Paper
+                        <select id="sheet-paper">
+                            <option value="letter" selected>Letter</option>
+                            <option value="a4">A4</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="sheet-controls-row">
+                    <label class="sheet-checkbox">
+                        <input id="sheet-double" type="checkbox">
+                        Double-sided
+                    </label>
+                    <label class="sheet-checkbox">
+                        <input id="sheet-cropmarks" type="checkbox">
+                        Crop marks
+                    </label>
+                </div>
+                <div class="sheet-controls-row" id="sheet-offset-row" style="display:none">
+                    <label class="sheet-label">
+                        Back offset
+                        <input id="sheet-back-offset" type="number" class="sheet-number-input" value="0" step="0.5"> mm
+                    </label>
+                </div>
+                <div class="sheet-controls-row">
+                    <button id="sheet-generate" class="btn sheet-btn" type="button" disabled>Generate PDF</button>
+                    <button id="sheet-clear" class="btn sheet-btn" type="button">Clear All</button>
+                </div>
+            </div>
+        </div>
+    </aside>
+    </div>
 
     <script>
         /* ===== Constants ===== */
@@ -671,6 +1060,25 @@
             SYM_GAP: 8,              // gap between mana symbols
             SYM_TOP_RATIO: 0.15,     // symbol Y position within gradient (0–1)
         };
+
+        /* ===== Sheet Queue (PDF generation) ===== */
+        const SHEET = {
+            CARD_W_MM: 63,
+            CARD_H_MM: 88,
+            COLS: 3,
+            ROWS: 3,
+            CARDS_PER_PAGE: 9,
+            PAPER: {
+                letter: { w: 215.9, h: 279.4, label: 'Letter' },
+                a4:     { w: 210,   h: 297,   label: 'A4' }
+            }
+        };
+
+        let sheetQueue = [];   // [{id, front: {dataUrl,label}|null, back: {dataUrl,label}|null}, ...]
+        let sheetIdCounter = 0;
+        let sheetPaper = 'letter';
+        let sheetDoubleSided = false;
+        let sheetCropMarks = false;
 
         /* ===== DOM Refs ===== */
         const themeInput = document.getElementById('theme-name');
@@ -740,7 +1148,7 @@
                 const title = themeInput.value.trim() || 'Packing List';
                 await renderPackingList(lastPackingGroups, title);
                 packingDownload.href = packingCanvas.toDataURL('image/png');
-                packingDownload.download = slugify(themeInput.value.trim() || 'packing-list') + '-packing-list.png';
+                packingDownload.download = slugify(themeInput.value.trim() ? themeInput.value.trim() + '-packing-list' : 'packing-list') + '.png';
             }
         });
 
@@ -1012,9 +1420,9 @@
         themeDownload.addEventListener('click', async (e) => {
             e.preventDefault();
             const themeName = themeInput.value.trim();
-            await renderThemeCard(themeName || 'Theme');
+            await renderThemeCard(themeName);
             themeDownload.href = themeCanvas.toDataURL('image/png');
-            themeDownload.download = slugify(themeName || 'theme-card') + '-theme-card.png';
+            themeDownload.download = slugify(themeName ? themeName + '-theme-card' : 'theme-card') + '.png';
             // Re-render then trigger download via a temporary <a> — the visible
             // download link's href is stale until clicked, so we render fresh here.
             const a = document.createElement('a');
@@ -1221,7 +1629,7 @@
         // Find the largest scale multiplier (0–10 → 1.0×–2.0×) that fits all content on the card.
         function bestSizeOffset(groups) {
             const FOOTER_ZONE = CARD_H - BORDER - PACK.FOOTER_MARGIN;
-            const BASE_Y = BORDER + PACK.TITLE_BASELINE + PACK.TITLE_RULE_GAP + PACK.FIRST_GROUP_GAP;
+            const FIXED_Y = BORDER + PACK.TITLE_BASELINE + PACK.TITLE_RULE_GAP;
             let totalCards = 0;
             let totalGroups = 0;
             for (const [, cards] of groups) {
@@ -1231,10 +1639,11 @@
             for (let off = 10; off >= 0; off--) {
                 const s = 1 + off * 0.1;
                 const rowH = Math.round(PACK.BASE_ROW_H * s);
+                const firstGap = Math.round(PACK.FIRST_GROUP_GAP * s);
                 const groupOverhead = Math.round(PACK.BASE_HEADING_GAP * s)
                     + Math.round(PACK.BASE_UNDERLINE_GAP * s)
                     + Math.round(PACK.BASE_GROUP_GAP * s);
-                const y = BASE_Y + totalGroups * groupOverhead + totalCards * rowH;
+                const y = FIXED_Y + firstGap + totalGroups * groupOverhead + totalCards * rowH;
                 if (y <= FOOTER_ZONE) return off;
             }
             return 0;
@@ -1285,7 +1694,7 @@
             ctx.moveTo(MARGIN_X, y);
             ctx.lineTo(MAX_X, y);
             ctx.stroke();
-            y += PACK.FIRST_GROUP_GAP;
+            y += Math.round(PACK.FIRST_GROUP_GAP * S);
 
             ctx.textAlign = 'left';
 
@@ -1468,18 +1877,18 @@
 
             showPackingView();
             packingDownload.href = packingCanvas.toDataURL('image/png');
-            packingDownload.download = slugify(themeName || 'packing-list') + '-packing-list.png';
+            packingDownload.download = slugify(themeName ? themeName + '-packing-list' : 'packing-list') + '.png';
 
             return { overflow };
         }
 
         async function generateThemeCard(themeName) {
             showStatus('Rendering theme card...', 'info');
-            await renderThemeCard(themeName || 'Theme');
+            await renderThemeCard(themeName);
 
             themeDownloadRow.classList.remove('hidden');
             themeDownload.href = themeCanvas.toDataURL('image/png');
-            themeDownload.download = slugify(themeName || 'theme-card') + '-theme-card.png';
+            themeDownload.download = slugify(themeName ? themeName + '-theme-card' : 'theme-card') + '.png';
         }
 
         async function run() {
@@ -1553,6 +1962,406 @@
             statusEl.textContent = '';
             statusEl.className = 'status';
         }
+
+        /* ===== Sheet Queue (PDF Print Sheets) ===== */
+        const sheetSlotsEl = document.getElementById('sheet-slots');
+        const sheetCountEl = document.getElementById('sheet-count');
+        const sheetPaperSel = document.getElementById('sheet-paper');
+        const sheetDoubleCheck = document.getElementById('sheet-double');
+        const sheetCropCheck = document.getElementById('sheet-cropmarks');
+        const sheetBackOffsetInput = document.getElementById('sheet-back-offset');
+        const sheetOffsetRow = document.getElementById('sheet-offset-row');
+        const sheetGenerateBtn = document.getElementById('sheet-generate');
+        const sheetClearBtn = document.getElementById('sheet-clear');
+        const packingSheetBtn = document.getElementById('packing-sheet-btn');
+        const themeSheetBtn = document.getElementById('theme-sheet-btn');
+        const pairSheetBtn = document.getElementById('pair-sheet-btn');
+
+        sheetPaperSel.addEventListener('change', () => { sheetPaper = sheetPaperSel.value; });
+        sheetDoubleCheck.addEventListener('change', () => {
+            sheetDoubleSided = sheetDoubleCheck.checked;
+            sheetOffsetRow.style.display = sheetDoubleSided ? '' : 'none';
+            refreshSheetPanel();
+        });
+        sheetCropCheck.addEventListener('change', () => {
+            sheetCropMarks = sheetCropCheck.checked;
+        });
+
+        async function snapshotPackingCard() {
+            const themeName = themeInput.value.trim();
+            await renderPackingList(lastPackingGroups, themeName || 'Packing List');
+            return packingCanvas.toDataURL('image/png');
+        }
+
+        async function snapshotThemeCard() {
+            const themeName = themeInput.value.trim();
+            await renderThemeCard(themeName);
+            return themeCanvas.toDataURL('image/png');
+        }
+
+        function addToSheet(front, back) {
+            sheetQueue.push({
+                id: ++sheetIdCounter,
+                front: front || null,
+                back: back || null,
+            });
+            refreshSheetPanel();
+            // Auto-expand on desktop only — on mobile it would take over the screen
+            if (window.matchMedia('(min-width: 769px)').matches) {
+                document.getElementById('sheet-panel').classList.add('expanded');
+            }
+            requestAnimationFrame(() => sheetSlotsEl.scrollTop = sheetSlotsEl.scrollHeight);
+            showStatus('Added to print sheet (' + sheetQueue.length + ' slot' + (sheetQueue.length !== 1 ? 's' : '') + ')', 'info');
+        }
+
+        function clearSheet() {
+            sheetQueue = [];
+            refreshSheetPanel();
+        }
+
+        /* ===== Drag-and-Drop Helpers ===== */
+        function createDropZone(slotId, side, cardData) {
+            const zone = document.createElement('div');
+            zone.className = 'sheet-drop' + (cardData ? ' filled' : '');
+            zone.dataset.slotId = slotId;
+            zone.dataset.side = side;
+
+            if (cardData) {
+                const img = document.createElement('img');
+                img.src = cardData.dataUrl;
+                img.alt = cardData.label;
+                img.draggable = true;
+                img.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', JSON.stringify({ slotId, side }));
+                    e.dataTransfer.effectAllowed = 'move';
+                    requestAnimationFrame(() => img.classList.add('dragging'));
+                });
+                img.addEventListener('dragend', () => {
+                    img.classList.remove('dragging');
+                });
+                zone.appendChild(img);
+            } else {
+                zone.textContent = side === 'front' ? 'Front' : 'Back';
+            }
+
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                zone.classList.add('drag-over');
+            });
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('drag-over');
+            });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+                try {
+                    const source = JSON.parse(e.dataTransfer.getData('text/plain'));
+                    moveCard(source.slotId, source.side, slotId, side);
+                } catch (err) { /* ignore non-card drops */ }
+            });
+
+            return zone;
+        }
+
+        function moveCard(fromSlotId, fromSide, toSlotId, toSide) {
+            const fromSlot = sheetQueue.find(s => s.id === fromSlotId);
+            const toSlot = sheetQueue.find(s => s.id === toSlotId);
+            if (!fromSlot || !toSlot) return;
+            if (fromSlotId === toSlotId && fromSide === toSide) return;
+
+            const fromCard = fromSlot[fromSide];
+            const toCard = toSlot[toSide];
+
+            toSlot[toSide] = fromCard;
+            fromSlot[fromSide] = toCard;
+
+            sheetQueue = sheetQueue.filter(s => s.front || s.back);
+            refreshSheetPanel();
+        }
+
+        /* ===== Refresh Sheet Panel ===== */
+        function refreshSheetPanel() {
+            const count = sheetQueue.length;
+            sheetCountEl.textContent = '(' + count + ')';
+            sheetGenerateBtn.disabled = count === 0;
+
+            sheetSlotsEl.replaceChildren();
+
+            if (count === 0) {
+                const msg = document.createElement('div');
+                msg.className = 'sheet-empty-msg';
+                msg.textContent = 'No cards added yet';
+                sheetSlotsEl.appendChild(msg);
+            } else {
+                for (const slot of sheetQueue) {
+                    const slotEl = document.createElement('div');
+                    slotEl.className = 'sheet-slot';
+                    slotEl.dataset.slotId = slot.id;
+
+                    const frontDrop = createDropZone(slot.id, 'front', slot.front);
+                    slotEl.appendChild(frontDrop);
+
+                    const backDrop = createDropZone(slot.id, 'back', slot.back);
+                    slotEl.appendChild(backDrop);
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'sheet-slot-remove';
+                    removeBtn.textContent = '\u00d7';
+                    removeBtn.title = 'Remove slot';
+                    removeBtn.addEventListener('click', () => {
+                        sheetQueue = sheetQueue.filter(s => s.id !== slot.id);
+                        refreshSheetPanel();
+                    });
+                    slotEl.appendChild(removeBtn);
+
+                    sheetSlotsEl.appendChild(slotEl);
+                }
+            }
+
+            // Hidden drop zone that appears only during drag
+            const dropNew = document.createElement('div');
+            dropNew.className = 'sheet-drop-new';
+            dropNew.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                dropNew.classList.add('drag-over');
+            });
+            dropNew.addEventListener('dragleave', () => {
+                dropNew.classList.remove('drag-over');
+            });
+            dropNew.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropNew.classList.remove('drag-over');
+                try {
+                    const source = JSON.parse(e.dataTransfer.getData('text/plain'));
+                    const fromSlot = sheetQueue.find(s => s.id === source.slotId);
+                    if (!fromSlot) return;
+                    const cardData = fromSlot[source.side];
+                    if (!cardData) return;
+                    fromSlot[source.side] = null;
+                    sheetQueue.push({ id: ++sheetIdCounter, front: cardData, back: null });
+                    sheetQueue = sheetQueue.filter(s => s.front || s.back);
+                    refreshSheetPanel();
+                } catch (err) { /* ignore */ }
+            });
+            sheetSlotsEl.appendChild(dropNew);
+        }
+
+        function updatePairButtonVisibility() {
+            const hasPackingList = !packingView.classList.contains('hidden') && lastPackingGroups;
+            const hasThemeCard = cropper.loaded;
+            pairSheetBtn.classList.toggle('hidden', !(hasPackingList && hasThemeCard));
+        }
+
+        // Add to sheet: packing list only
+        packingSheetBtn.addEventListener('click', async () => {
+            const url = await snapshotPackingCard();
+            const name = themeInput.value.trim() || 'Packing List';
+            addToSheet({ dataUrl: url, label: name + ' (pack)' }, null);
+        });
+
+        // Add to sheet: theme card only
+        themeSheetBtn.addEventListener('click', async () => {
+            const url = await snapshotThemeCard();
+            const name = themeInput.value.trim() || 'Theme Card';
+            addToSheet({ dataUrl: url, label: name + ' (theme)' }, null);
+        });
+
+        // Add pair to sheet: theme card front, packing list back
+        pairSheetBtn.addEventListener('click', async () => {
+            const frontUrl = await snapshotThemeCard();
+            const backUrl = await snapshotPackingCard();
+            const name = themeInput.value.trim() || 'Card';
+            addToSheet(
+                { dataUrl: frontUrl, label: name + ' (theme)' },
+                { dataUrl: backUrl, label: name + ' (pack)' }
+            );
+        });
+
+        sheetClearBtn.addEventListener('click', () => {
+            clearSheet();
+            showStatus('Print sheet cleared.', 'info');
+        });
+
+        sheetGenerateBtn.addEventListener('click', () => {
+            if (sheetQueue.length === 0) return;
+            if (sheetDoubleSided) {
+                generateDoubleSidedPDF();
+            } else {
+                generateSingleSidedPDF();
+            }
+        });
+
+        // Update pair button visibility when relevant state changes
+        packingEditBtn.addEventListener('click', updatePairButtonVisibility);
+        new MutationObserver(updatePairButtonVisibility)
+            .observe(packingView, { attributes: true, attributeFilter: ['class'] });
+        const origCropperOnLoad = cropper._onLoad;
+        cropper._onLoad = function() {
+            origCropperOnLoad && origCropperOnLoad();
+            updatePairButtonVisibility();
+        };
+
+        /* ===== PDF Crop Marks ===== */
+        function drawCropMarks(doc, marginX, marginY, gridW, gridH) {
+            if (!sheetCropMarks) return;
+            const MARK_LEN = 5;   // mm length of each mark line
+            const MARK_GAP = 1.5; // mm gap between card edge and mark start
+            doc.setDrawColor(180, 180, 180);
+            doc.setLineWidth(0.2);
+
+            for (let col = 0; col <= SHEET.COLS; col++) {
+                const x = marginX + col * SHEET.CARD_W_MM;
+                for (let row = 0; row <= SHEET.ROWS; row++) {
+                    const y = marginY + row * SHEET.CARD_H_MM;
+                    // top mark
+                    if (row === 0) {
+                        doc.line(x, marginY - MARK_GAP, x, marginY - MARK_GAP - MARK_LEN);
+                    }
+                    // bottom mark
+                    if (row === SHEET.ROWS) {
+                        doc.line(x, marginY + gridH + MARK_GAP, x, marginY + gridH + MARK_GAP + MARK_LEN);
+                    }
+                    // left mark
+                    if (col === 0) {
+                        doc.line(marginX - MARK_GAP, y, marginX - MARK_GAP - MARK_LEN, y);
+                    }
+                    // right mark
+                    if (col === SHEET.COLS) {
+                        doc.line(marginX + gridW + MARK_GAP, y, marginX + gridW + MARK_GAP + MARK_LEN, y);
+                    }
+                }
+            }
+        }
+
+        /* ===== PDF Generation: Single-Sided ===== */
+        function generateSingleSidedPDF() {
+            const { jsPDF } = window.jspdf;
+            const paper = SHEET.PAPER[sheetPaper];
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: [paper.w, paper.h]
+            });
+
+            // Flatten all cards (fronts and backs) onto single-sided pages
+            const cards = [];
+            for (const slot of sheetQueue) {
+                if (slot.front) cards.push(slot.front.dataUrl);
+                if (slot.back) cards.push(slot.back.dataUrl);
+            }
+
+            if (cards.length === 0) return;
+
+            const gridW = SHEET.COLS * SHEET.CARD_W_MM;
+            const gridH = SHEET.ROWS * SHEET.CARD_H_MM;
+            const marginX = (paper.w - gridW) / 2;
+            const marginY = (paper.h - gridH) / 2;
+
+            const totalPages = Math.ceil(cards.length / SHEET.CARDS_PER_PAGE);
+            for (let i = 0; i < cards.length; i++) {
+                if (i > 0 && i % SHEET.CARDS_PER_PAGE === 0) {
+                    doc.addPage([paper.w, paper.h], 'portrait');
+                }
+                const posOnPage = i % SHEET.CARDS_PER_PAGE;
+                const col = posOnPage % SHEET.COLS;
+                const row = Math.floor(posOnPage / SHEET.COLS);
+                const x = marginX + col * SHEET.CARD_W_MM;
+                const y = marginY + row * SHEET.CARD_H_MM;
+                doc.addImage(cards[i], 'PNG', x, y, SHEET.CARD_W_MM, SHEET.CARD_H_MM);
+
+                // Draw crop marks after last card on each page
+                if (posOnPage === SHEET.CARDS_PER_PAGE - 1 || i === cards.length - 1) {
+                    drawCropMarks(doc, marginX, marginY, gridW, gridH);
+                }
+            }
+
+            doc.save('jumpstart-sheet.pdf');
+            showStatus('PDF generated! (' + cards.length + ' card' + (cards.length !== 1 ? 's' : '') + ')', 'info');
+        }
+
+        /* ===== PDF Generation: Double-Sided ===== */
+        function generateDoubleSidedPDF() {
+            const { jsPDF } = window.jspdf;
+            const paper = SHEET.PAPER[sheetPaper];
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: [paper.w, paper.h]
+            });
+
+            // Build parallel front/back arrays by slot
+            const fronts = [];
+            const backs = [];
+            for (const slot of sheetQueue) {
+                fronts.push(slot.front ? slot.front.dataUrl : null);
+                backs.push(slot.back ? slot.back.dataUrl : null);
+            }
+
+            const backOffsetY = parseFloat(sheetBackOffsetInput.value) || 0;
+
+            const gridW = SHEET.COLS * SHEET.CARD_W_MM;
+            const gridH = SHEET.ROWS * SHEET.CARD_H_MM;
+            const marginX = (paper.w - gridW) / 2;
+            const marginY = (paper.h - gridH) / 2;
+
+            const totalPages = Math.ceil(fronts.length / SHEET.CARDS_PER_PAGE);
+            let firstPage = true;
+
+            for (let page = 0; page < totalPages; page++) {
+                const startIdx = page * SHEET.CARDS_PER_PAGE;
+                const endIdx = Math.min(startIdx + SHEET.CARDS_PER_PAGE, fronts.length);
+
+                // Front page
+                if (!firstPage) doc.addPage([paper.w, paper.h], 'portrait');
+                firstPage = false;
+
+                for (let i = startIdx; i < endIdx; i++) {
+                    if (!fronts[i]) continue;
+                    const posOnPage = i - startIdx;
+                    const col = posOnPage % SHEET.COLS;
+                    const row = Math.floor(posOnPage / SHEET.COLS);
+                    const x = marginX + col * SHEET.CARD_W_MM;
+                    const y = marginY + row * SHEET.CARD_H_MM;
+                    doc.addImage(fronts[i], 'PNG', x, y, SHEET.CARD_W_MM, SHEET.CARD_H_MM);
+                }
+                drawCropMarks(doc, marginX, marginY, gridW, gridH);
+
+                // Back page — mirror columns for long-edge duplex, shifted by back offset
+                const backMarginY = marginY + backOffsetY;
+                doc.addPage([paper.w, paper.h], 'portrait');
+                for (let i = startIdx; i < endIdx; i++) {
+                    if (!backs[i]) continue;
+                    const posOnPage = i - startIdx;
+                    const col = posOnPage % SHEET.COLS;
+                    const row = Math.floor(posOnPage / SHEET.COLS);
+                    const mirroredCol = (SHEET.COLS - 1) - col;
+                    const x = marginX + mirroredCol * SHEET.CARD_W_MM;
+                    const y = backMarginY + row * SHEET.CARD_H_MM;
+                    doc.addImage(backs[i], 'PNG', x, y, SHEET.CARD_W_MM, SHEET.CARD_H_MM);
+                }
+                drawCropMarks(doc, marginX, backMarginY, gridW, gridH);
+            }
+
+            doc.save('jumpstart-sheet-double.pdf');
+            showStatus('Double-sided PDF generated! (' + fronts.length + ' slot' + (fronts.length !== 1 ? 's' : '') + ')', 'info');
+        }
+
+        /* ===== Sheet Panel Toggle ===== */
+        const sheetPanel = document.getElementById('sheet-panel');
+        const sheetToggle = document.getElementById('sheet-toggle');
+
+        sheetToggle.addEventListener('click', () => {
+            sheetPanel.classList.toggle('expanded');
+        });
+
+        document.getElementById('sheet-close').addEventListener('click', () => {
+            sheetPanel.classList.remove('expanded');
+        });
+
+        // Initialize panel
+        refreshSheetPanel();
     </script>
 </body>
 </html>
