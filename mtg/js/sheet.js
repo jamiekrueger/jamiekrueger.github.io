@@ -3,6 +3,7 @@ import { SHEET } from './constants.js';
 export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, backOffsetInput, offsetRow, generateBtn, clearBtn, testBtn, panelEl, toggleEl, closeEl, onStatus }) {
     let sheetQueue = [];
     let sheetIdCounter = 0;
+    let hasAutoExpanded = false;
     let sheetPaper = 'letter';
     let sheetDoubleSided = false;
     let sheetCropMarks = false;
@@ -27,7 +28,6 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
 
     clearBtn.addEventListener('click', () => {
         clearSheet();
-        onStatus('Print sheet cleared.', 'info');
     });
 
     generateBtn.addEventListener('click', () => {
@@ -258,7 +258,6 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
         }
 
         doc.save('jumpstart-sheet.pdf');
-        onStatus('PDF generated! (' + cards.length + ' card' + (cards.length !== 1 ? 's' : '') + ')', 'info');
     }
 
     /* ===== PDF Generation: Double-Sided ===== */
@@ -305,7 +304,6 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
         }
 
         doc.save('jumpstart-sheet-double.pdf');
-        onStatus('Double-sided PDF generated! (' + fronts.length + ' slot' + (fronts.length !== 1 ? 's' : '') + ')', 'info');
     }
 
     /* ===== PDF Generation: Alignment Test Page ===== */
@@ -342,7 +340,6 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
         drawCropMarks(doc, marginX, backMarginY, gridW, gridH);
 
         doc.save('alignment-test.pdf');
-        onStatus('Alignment test page downloaded.', 'info');
     }
 
     function addToSheet(front, back) {
@@ -352,12 +349,12 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
             back: back || null,
         });
         refreshSheetPanel();
-        // Auto-expand on desktop only — on mobile it would take over the screen
-        if (window.matchMedia('(min-width: 769px)').matches) {
+        // Auto-expand on first add (desktop only) — after that, respect the user's choice
+        if (!hasAutoExpanded && window.matchMedia('(min-width: 769px)').matches) {
             panelEl.classList.add('expanded');
+            hasAutoExpanded = true;
         }
         requestAnimationFrame(() => slotsEl.scrollTop = slotsEl.scrollHeight);
-        onStatus('Added to print sheet (' + sheetQueue.length + ' slot' + (sheetQueue.length !== 1 ? 's' : '') + ')', 'info');
     }
 
     function clearSheet() {

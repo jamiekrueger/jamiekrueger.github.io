@@ -266,7 +266,6 @@ async function generatePackingList(themeName) {
         return { error: true };
     }
 
-    showStatus('Looking up card types...', 'info');
     const { found, notFound, colorIdentity } = await fetchCardTypes(cards);
 
     if (found.length === 0) {
@@ -287,7 +286,6 @@ async function generatePackingList(themeName) {
     const groups = groupByType(found, notFound, cards);
     lastPackingGroups = groups;
 
-    showStatus('Rendering packing list...', 'info');
     const overflow = await renderPackingList(groups, themeName || 'Packing List', packingCanvas, { showTitle: packingShowTitleCheck.checked });
 
     showPackingView();
@@ -298,7 +296,6 @@ async function generatePackingList(themeName) {
 }
 
 async function generateThemeCard(themeName) {
-    showStatus('Rendering theme card...', 'info');
     await renderThemeCard(themeCanvas, cropper, selectedColors, themeName);
 
     themeDownload.href = themeCanvas.toDataURL('image/png');

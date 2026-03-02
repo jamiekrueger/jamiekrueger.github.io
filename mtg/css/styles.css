@@ -509,6 +509,7 @@ body {
 
 .btn-download {
     text-decoration: none;
+    text-align: center;
 }
 
 /* ===== Status Area ===== */
@@ -921,6 +922,10 @@ body {
 
     .nav a, .nav h1 {
         font-size: 0.55rem;
+    }
+
+    .nav .nav-label {
+        display: none;
     }
 
     .app-layout {
