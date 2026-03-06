@@ -52,7 +52,17 @@ html, body {
   font-family: 'Press Start 2P', monospace;
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: grayscale;
-  background: #e8e8e8;
+}
+
+/* Floor pattern on html covers pinch-zoom overscroll at the bottom.
+   Wall overscroll at the top is handled by .scene::before. */
+html {
+  background-color: #d0d0d0;
+  background-image:
+    radial-gradient(circle, #d8d8d8 0.05vw, transparent 0.05vw),
+    radial-gradient(circle, #c6c6c6 0.05vw, transparent 0.05vw);
+  background-size: 0.4vw 0.4vw, 0.6vw 0.6vw;
+  background-position: 0 0, 0.2vw 0.2vw;
 }
 
 /* ===== Scene ===== */
