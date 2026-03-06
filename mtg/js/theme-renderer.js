@@ -2,7 +2,8 @@ import { CARD_W, CARD_H, BORDER, THEME, FONT_HEADING } from './constants.js';
 import { shrinkFontToFit } from './utils.js';
 import { resolveSymbols } from './symbols.js';
 
-export async function renderThemeCard(canvas, cropperInstance, selectedColors, themeName) {
+export async function renderThemeCard(canvas, cropperInstance, selectedColors, themeName, opts = {}) {
+    const { showGradient = true } = opts;
     const ctx = canvas.getContext('2d');
     await document.fonts.ready;
 
@@ -28,39 +29,47 @@ export async function renderThemeCard(canvas, cropperInstance, selectedColors, t
     const gradTop = gradBottom - gradH;
     const barTop = gradTop - barH;
 
-    // Dark semi-transparent bar for theme name (only if name provided)
-    const hasName = themeName && themeName.trim();
-    if (hasName) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-        ctx.fillRect(BORDER, barTop, CARD_W - BORDER * 2, barH);
-    }
+    const hasName = showGradient && themeName && themeName.trim();
 
-    // Gradient zone below the bar — fade from transparent when no name
-    // bar above, otherwise match the bar's opacity for a smooth transition.
-    const grad = ctx.createLinearGradient(0, gradTop, 0, gradBottom);
-    grad.addColorStop(0, hasName ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0)');
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0.85)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(BORDER, gradTop, CARD_W - BORDER * 2, gradH);
+    if (showGradient) {
+        // Dark semi-transparent bar for theme name (only if name provided)
+        if (hasName) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+            ctx.fillRect(BORDER, barTop, CARD_W - BORDER * 2, barH);
+        }
+
+        // Gradient zone below the bar — fade from transparent when no name
+        // bar above, otherwise match the bar's opacity for a smooth transition.
+        const grad = ctx.createLinearGradient(0, gradTop, 0, gradBottom);
+        grad.addColorStop(0, hasName ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0.85)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(BORDER, gradTop, CARD_W - BORDER * 2, gradH);
+    }
 
     if (hasName) {
         // Theme name text centered in the bar (default = half bar height, shrink if needed)
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.textBaseline = 'alphabetic';
 
-        const barCenterY = barTop + barH / 2;
         const maxTextW = CARD_W - BORDER * 2 - THEME.NAME_PAD;
+        const text = themeName.toUpperCase();
 
         shrinkFontToFit(Math.round(barH / 2), THEME.MIN_NAME_SIZE, THEME.NAME_SHRINK_STEP, s => {
             ctx.font = 'bold ' + s + 'px ' + FONT_HEADING;
-            return ctx.measureText(themeName.toUpperCase()).width <= maxTextW;
+            return ctx.measureText(text).width <= maxTextW;
         });
 
+        // Use actual glyph bounds for true visual centering of uppercase text
+        const metrics = ctx.measureText(text);
+        const textH = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+        const textY = barTop + (barH + textH) / 2 - metrics.actualBoundingBoxDescent;
+
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillText(themeName.toUpperCase(), CARD_W / 2 + THEME.SHADOW_OFFSET, barCenterY + THEME.SHADOW_OFFSET);
+        ctx.fillText(text, CARD_W / 2 + THEME.SHADOW_OFFSET, textY + THEME.SHADOW_OFFSET);
 
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(themeName.toUpperCase(), CARD_W / 2, barCenterY);
+        ctx.fillText(text, CARD_W / 2, textY);
     }
 
     // Mana symbols centered in the gradient zone

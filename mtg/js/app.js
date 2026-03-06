@@ -27,6 +27,7 @@ const themePanel = document.getElementById('theme-panel');
 const themeOverlay = document.getElementById('theme-overlay');
 const themeOverlayName = document.getElementById('theme-overlay-name');
 const themeOverlayColors = document.getElementById('theme-overlay-colors');
+const themeGradientCheck = document.getElementById('theme-gradient');
 
 // Sheet buttons
 const packingSheetBtn = document.getElementById('packing-sheet-btn');
@@ -104,6 +105,11 @@ packingShowTitleCheck.addEventListener('change', async () => {
     }
 });
 
+/* ===== Gradient Toggle ===== */
+themeGradientCheck.addEventListener('change', () => {
+    themeOverlay.classList.toggle('no-gradient', !themeGradientCheck.checked);
+});
+
 /* ===== Color Identity State ===== */
 const selectedColors = new Set();
 
@@ -155,6 +161,7 @@ const cropper = new ImageCropper({
     onLoad() {
         themePanel.classList.remove('hidden');
         themeOverlay.classList.remove('hidden');
+        themeOverlay.classList.toggle('no-gradient', !themeGradientCheck.checked);
         document.getElementById('change-image-btn').classList.remove('hidden');
         updateThemeOverlay();
         updatePairButtonVisibility();
@@ -190,7 +197,7 @@ const sheet = initSheet({
     cropCheck: document.getElementById('sheet-cropmarks'),
     backOffsetInput: document.getElementById('sheet-back-offset'),
     offsetRow: document.getElementById('sheet-offset-row'),
-    generateBtn: document.getElementById('sheet-generate'),
+    downloadBtn: document.getElementById('sheet-download'),
     clearBtn: document.getElementById('sheet-clear'),
     testBtn: document.getElementById('sheet-test-btn'),
     panelEl: document.getElementById('sheet-panel'),
@@ -206,7 +213,7 @@ async function snapshotPackingCard() {
 }
 
 async function snapshotThemeCard() {
-    await renderThemeCard(themeCanvas, cropper, selectedColors, getThemeName());
+    await renderThemeCard(themeCanvas, cropper, selectedColors, getThemeName(), { showGradient: themeGradientCheck.checked });
     return themeCanvas.toDataURL('image/png');
 }
 
@@ -296,7 +303,7 @@ async function generatePackingList(themeName) {
 }
 
 async function generateThemeCard(themeName) {
-    await renderThemeCard(themeCanvas, cropper, selectedColors, themeName);
+    await renderThemeCard(themeCanvas, cropper, selectedColors, themeName, { showGradient: themeGradientCheck.checked });
 
     themeDownload.href = themeCanvas.toDataURL('image/png');
     themeDownload.download = slugify(themeName ? themeName + '-theme-card' : 'theme-card') + '.png';

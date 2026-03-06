@@ -1,12 +1,14 @@
 import { SHEET } from './constants.js';
 
-export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, backOffsetInput, offsetRow, generateBtn, clearBtn, testBtn, panelEl, toggleEl, closeEl, onStatus }) {
+export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, backOffsetInput, offsetRow, downloadBtn, clearBtn, testBtn, panelEl, toggleEl, closeEl, onStatus }) {
     let sheetQueue = [];
     let sheetIdCounter = 0;
     let hasAutoExpanded = false;
     let sheetPaper = 'letter';
     let sheetDoubleSided = false;
-    let sheetCropMarks = false;
+    let sheetCropMarks = true;
+    let sortableInstance = null;
+    let dragSource = null; // { slotId, side } for native card drag
 
     paperSel.addEventListener('change', () => { sheetPaper = paperSel.value; });
     doubleCheck.addEventListener('change', () => {
@@ -30,7 +32,7 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
         clearSheet();
     });
 
-    generateBtn.addEventListener('click', () => {
+    downloadBtn.addEventListener('click', () => {
         if (sheetQueue.length === 0) return;
         if (sheetDoubleSided) {
             generateDoubleSidedPDF();
@@ -43,7 +45,7 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
         generateTestPDF();
     });
 
-    /* ===== Drag-and-Drop Helpers ===== */
+    /* ===== Drag Helpers ===== */
     function createDropZone(slotId, side, cardData) {
         const zone = document.createElement('div');
         zone.className = 'sheet-drop' + (cardData ? ' filled' : '');
@@ -56,33 +58,41 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
             img.alt = cardData.label;
             img.draggable = true;
             img.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', JSON.stringify({ slotId, side }));
+                e.stopPropagation();
+                dragSource = { slotId, side };
                 e.dataTransfer.effectAllowed = 'move';
-                requestAnimationFrame(() => img.classList.add('dragging'));
+                slotsEl.classList.add('card-dragging');
             });
             img.addEventListener('dragend', () => {
-                img.classList.remove('dragging');
+                dragSource = null;
+                slotsEl.classList.remove('card-dragging');
             });
             zone.appendChild(img);
         } else {
             zone.textContent = side === 'front' ? 'Front' : 'Back';
         }
 
-        zone.addEventListener('dragover', (e) => {
+        // Accept drops — highlight border, swap on drop
+        // stopPropagation prevents Sortable (row reorder) from intercepting card drags
+        let enterCount = 0;
+        zone.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'move'; });
+        zone.addEventListener('dragenter', (e) => {
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            zone.classList.add('drag-over');
+            e.stopPropagation();
+            if (++enterCount === 1) zone.classList.add('drag-over');
         });
-        zone.addEventListener('dragleave', () => {
-            zone.classList.remove('drag-over');
+        zone.addEventListener('dragleave', (e) => {
+            e.stopPropagation();
+            if (--enterCount === 0) zone.classList.remove('drag-over');
         });
         zone.addEventListener('drop', (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            enterCount = 0;
             zone.classList.remove('drag-over');
-            try {
-                const source = JSON.parse(e.dataTransfer.getData('text/plain'));
-                moveCard(source.slotId, source.side, slotId, side);
-            } catch (err) { /* ignore non-card drops */ }
+            if (!dragSource) return;
+            moveCard(dragSource.slotId, dragSource.side, slotId, side);
+            dragSource = null;
         });
 
         return zone;
@@ -106,9 +116,15 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
 
     /* ===== Refresh Sheet Panel ===== */
     function refreshSheetPanel() {
+        // Destroy previous Sortable instance (row reordering only)
+        if (sortableInstance) {
+            sortableInstance.destroy();
+            sortableInstance = null;
+        }
+
         const count = sheetQueue.length;
         countEl.textContent = '(' + count + ')';
-        generateBtn.disabled = count === 0;
+        downloadBtn.disabled = count === 0;
         clearBtn.disabled = count === 0;
 
         slotsEl.replaceChildren();
@@ -123,6 +139,12 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
                 const slotEl = document.createElement('div');
                 slotEl.className = 'sheet-slot';
                 slotEl.dataset.slotId = slot.id;
+
+                // Drag handle for row reordering
+                const handle = document.createElement('span');
+                handle.className = 'sheet-drag-handle';
+                handle.textContent = '\u2630';
+                slotEl.appendChild(handle);
 
                 const frontDrop = createDropZone(slot.id, 'front', slot.front);
                 slotEl.appendChild(frontDrop);
@@ -142,35 +164,52 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
 
                 slotsEl.appendChild(slotEl);
             }
-        }
 
-        // Hidden drop zone that appears only during drag
-        const dropNew = document.createElement('div');
-        dropNew.className = 'sheet-drop-new';
-        dropNew.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            dropNew.classList.add('drag-over');
-        });
-        dropNew.addEventListener('dragleave', () => {
-            dropNew.classList.remove('drag-over');
-        });
-        dropNew.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropNew.classList.remove('drag-over');
-            try {
-                const source = JSON.parse(e.dataTransfer.getData('text/plain'));
-                const fromSlot = sheetQueue.find(s => s.id === source.slotId);
+            // "Drop here for new row" zone at the bottom
+            const dropNew = document.createElement('div');
+            dropNew.className = 'sheet-drop-new';
+            let dragEnterCount = 0;
+            dropNew.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+            dropNew.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                if (++dragEnterCount === 1) dropNew.classList.add('drag-over');
+            });
+            dropNew.addEventListener('dragleave', () => {
+                if (--dragEnterCount === 0) dropNew.classList.remove('drag-over');
+            });
+            dropNew.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dragEnterCount = 0;
+                dropNew.classList.remove('drag-over');
+                if (!dragSource) return;
+                const fromSlot = sheetQueue.find(s => s.id === dragSource.slotId);
                 if (!fromSlot) return;
-                const cardData = fromSlot[source.side];
+                const cardData = fromSlot[dragSource.side];
                 if (!cardData) return;
-                fromSlot[source.side] = null;
+                fromSlot[dragSource.side] = null;
                 sheetQueue.push({ id: ++sheetIdCounter, front: cardData, back: null });
                 sheetQueue = sheetQueue.filter(s => s.front || s.back);
+                dragSource = null;
                 refreshSheetPanel();
-            } catch (err) { /* ignore */ }
-        });
-        slotsEl.appendChild(dropNew);
+            });
+            slotsEl.appendChild(dropNew);
+
+            // Initialize SortableJS for row reordering
+            sortableInstance = new Sortable(slotsEl, {
+                animation: 0,
+                handle: '.sheet-drag-handle',
+                ghostClass: 'sheet-slot-ghost',
+                chosenClass: 'sheet-slot-chosen',
+                dragClass: 'sheet-slot-drag',
+                filter: '.sheet-drop-new',
+                onEnd(evt) {
+                    if (evt.oldIndex === evt.newIndex) return;
+                    const [moved] = sheetQueue.splice(evt.oldIndex, 1);
+                    sheetQueue.splice(evt.newIndex, 0, moved);
+                    refreshSheetPanel();
+                }
+            });
+        }
     }
 
     /* ===== PDF Helpers ===== */

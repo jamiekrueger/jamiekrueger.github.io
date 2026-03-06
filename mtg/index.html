@@ -18,6 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Open+Sans:wght@400;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.6/Sortable.min.js"></script>
 </head>
 <body>
     <nav class="nav">
@@ -95,6 +96,10 @@
                     <div class="card-controls" id="theme-controls">
                         <label for="zoom-slider">Zoom:</label>
                         <input id="zoom-slider" class="zoom-slider" type="range" min="0" max="100" value="0">
+                        <label class="sheet-checkbox">
+                            <input id="theme-gradient" type="checkbox" checked>
+                            Gradient
+                        </label>
                     </div>
                     <div class="color-picker-section">
                         <label class="color-picker-label">Color identity:</label>
@@ -152,7 +157,7 @@
                 </div>
                 <div class="sheet-controls-row">
                     <label class="sheet-checkbox">
-                        <input id="sheet-cropmarks" type="checkbox">
+                        <input id="sheet-cropmarks" type="checkbox" checked>
                         Crop marks
                     </label>
                 </div>
@@ -171,7 +176,7 @@
                     <button id="sheet-test-btn" class="btn sheet-btn" type="button">Download Test Page</button>
                 </div>
                 <div class="sheet-controls-row">
-                    <button id="sheet-generate" class="btn sheet-btn" type="button" disabled>Generate PDF</button>
+                    <button id="sheet-download" class="btn sheet-btn" type="button" disabled>Download PDF</button>
                     <button id="sheet-clear" class="btn sheet-btn" type="button" disabled>Clear All</button>
                 </div>
             </div>
