@@ -1,14 +1,31 @@
 import { SHEET } from './constants.js';
 
+/**
+ * Print-sheet module — lets users queue card images and generate a PDF
+ * laid out on a 3x3 grid sized for standard MTG cards (63x88 mm).
+ *
+ * Supports single-sided and double-sided printing. Double-sided mode
+ * mirrors the back-page columns horizontally so fronts and backs align
+ * when the sheet is flipped on its long edge. A configurable Y-offset
+ * on the back page compensates for printer duplex misalignment.
+ *
+ * Cards can be reordered by dragging the row handle (via SortableJS)
+ * or moved between slots / sides by dragging the card thumbnails (via native HTML5 Drag and Drop API).
+ *
+ * Returns { addToSheet, clearSheet } for the main app to call.
+ */
 export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, backOffsetInput, offsetRow, downloadBtn, clearBtn, testBtn, panelEl, toggleEl, closeEl, onStatus }) {
+    // ── State ───────────────────────────────────────────────────────────
+    // Each slot in sheetQueue is { id, front, back } where front/back are
+    // either { dataUrl, label } or null.
     let sheetQueue = [];
     let sheetIdCounter = 0;
     let hasAutoExpanded = false;
-    let sheetPaper = 'letter';
+    let sheetPaper = 'letter';         // 'letter' | 'a4' — maps to SHEET.PAPER
     let sheetDoubleSided = false;
     let sheetCropMarks = true;
-    let sortableInstance = null;
-    let dragSource = null; // { slotId, side } for native card drag
+    let sortableInstance = null;        // SortableJS instance for row reordering
+    let dragSource = null;              // { slotId, side } tracks the card being dragged
 
     paperSel.addEventListener('change', () => { sheetPaper = paperSel.value; });
     doubleCheck.addEventListener('change', () => {
@@ -46,6 +63,13 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
     });
 
     /* ===== Drag Helpers ===== */
+
+    /**
+     * Build a drop-zone element for one side (front/back) of a slot.
+     * If cardData is present, renders a draggable thumbnail; otherwise
+     * shows a placeholder label. Each zone accepts drops to swap cards
+     * between slots/sides.
+     */
     function createDropZone(slotId, side, cardData) {
         const zone = document.createElement('div');
         zone.className = 'sheet-drop' + (cardData ? ' filled' : '');
@@ -72,8 +96,11 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
             zone.textContent = side === 'front' ? 'Front' : 'Back';
         }
 
-        // Accept drops — highlight border, swap on drop
-        // stopPropagation prevents Sortable (row reorder) from intercepting card drags
+        // Accept drops — highlight border on hover, swap cards on drop.
+        // stopPropagation on all drag events prevents SortableJS (row reorder)
+        // from intercepting card-level drags.
+        // enterCount tracks nested dragenter/dragleave pairs (child elements
+        // fire extra events) so the highlight only toggles at the zone boundary.
         let enterCount = 0;
         zone.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = 'move'; });
         zone.addEventListener('dragenter', (e) => {
@@ -98,6 +125,7 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
         return zone;
     }
 
+    /** Swap (or move) a card between two slot/side positions, then prune empty slots. */
     function moveCard(fromSlotId, fromSide, toSlotId, toSide) {
         const fromSlot = sheetQueue.find(s => s.id === fromSlotId);
         const toSlot = sheetQueue.find(s => s.id === toSlotId);
@@ -213,30 +241,45 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
     }
 
     /* ===== PDF Helpers ===== */
+
+    /** Create a fresh jsPDF document using the selected paper size. */
     function createPDF() {
         const { jsPDF } = window.jspdf;
         const paper = SHEET.PAPER[sheetPaper];
         return { doc: new jsPDF({ orientation: 'portrait', unit: 'mm', format: [paper.w, paper.h] }), paper };
     }
 
+    /** Calculate the 3x3 card grid dimensions and centre it on the page. */
     function getGridLayout(paper) {
         const gridW = SHEET.COLS * SHEET.CARD_W_MM;
         const gridH = SHEET.ROWS * SHEET.CARD_H_MM;
         return { gridW, gridH, marginX: (paper.w - gridW) / 2, marginY: (paper.h - gridH) / 2 };
     }
 
+    /** Convert a 0-based position index to (col, row, x, y) on the page. */
     function getCellPos(posOnPage, marginX, marginY) {
         const col = posOnPage % SHEET.COLS;
         const row = Math.floor(posOnPage / SHEET.COLS);
         return { col, row, x: marginX + col * SHEET.CARD_W_MM, y: marginY + row * SHEET.CARD_H_MM };
     }
 
+    /**
+     * Like getCellPos but mirrors the column order (right-to-left).
+     * Used for back pages so that when the sheet is flipped on its long edge,
+     * each back aligns with the corresponding front.
+     */
     function getMirroredCellPos(posOnPage, marginX, marginY) {
         const { col, row, y } = getCellPos(posOnPage, marginX, marginY);
         return { col, row, x: marginX + (SHEET.COLS - 1 - col) * SHEET.CARD_W_MM, y };
     }
 
     /* ===== PDF Crop Marks ===== */
+
+    /**
+     * Draw light-grey cut lines along the outer edges of the grid.
+     * Marks are drawn outside the card area with a small gap so they
+     * don't bleed into the card art when cutting.
+     */
     function drawCropMarks(doc, marginX, marginY, gridW, gridH) {
         if (!sheetCropMarks) return;
         const MARK_LEN = 5;   // mm length of each mark line
@@ -269,6 +312,8 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
     }
 
     /* ===== PDF Generation: Single-Sided ===== */
+
+    /** Flatten all front and back images into a simple left-to-right, top-to-bottom grid. */
     function generateSingleSidedPDF() {
         const { doc, paper } = createPDF();
         const { gridW, gridH, marginX, marginY } = getGridLayout(paper);
@@ -300,6 +345,13 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
     }
 
     /* ===== PDF Generation: Double-Sided ===== */
+
+    /**
+     * Generate alternating front/back page pairs for duplex printing.
+     * Back pages mirror the column order so cards align when the sheet
+     * is flipped on its long edge. The back Y-offset (from the UI input)
+     * compensates for printers whose duplex registration isn't perfect.
+     */
     function generateDoubleSidedPDF() {
         const { doc, paper } = createPDF();
         const { gridW, gridH, marginX, marginY } = getGridLayout(paper);
@@ -346,6 +398,12 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
     }
 
     /* ===== PDF Generation: Alignment Test Page ===== */
+
+    /**
+     * Print a front+back test page with numbered outlines instead of card art.
+     * Users print this duplex to check alignment and dial in the back offset
+     * before committing real cards to paper.
+     */
     function generateTestPDF() {
         const { doc, paper } = createPDF();
         const { gridW, gridH, marginX, marginY } = getGridLayout(paper);
@@ -381,6 +439,7 @@ export function initSheet({ slotsEl, countEl, paperSel, doubleCheck, cropCheck, 
         doc.save('alignment-test.pdf');
     }
 
+    /** Public: add a card (front and/or back) as a new slot at the end of the queue. */
     function addToSheet(front, back) {
         sheetQueue.push({
             id: ++sheetIdCounter,

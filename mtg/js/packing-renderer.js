@@ -1,8 +1,37 @@
+/**
+ * Packing-list renderer — draws a card-sized checklist of all cards in a
+ * Jumpstart pack, grouped by type (Creature, Instant, etc.).
+ *
+ * Layout (top to bottom):
+ *   ┌──────────────────────────────┐
+ *   │        black border          │
+ *   │  ┌──────────────────────┐    │
+ *   │  │   THEME NAME (title) │    │  ← optional, centred, uppercase
+ *   │  │  ────────────────────│    │  ← horizontal rule
+ *   │  │  CREATURE (5)        │    │  ← type heading + card count
+ *   │  │  ─────────────────── │    │  ← underline
+ *   │  │  2 Lightning Bolt {R}│    │  ← qty + name + mana symbols
+ *   │  │  1 Goblin Guide  {R} │    │     alternating row backgrounds
+ *   │  │  …                   │    │
+ *   │  │  INSTANT (3)         │    │  ← next type group
+ *   │  │  …                   │    │
+ *   │  └──────────────────────┘    │
+ *   │        black border          │
+ *   └──────────────────────────────┘
+ *
+ * All spacing scales uniformly via a "size offset" (0–10 → 1.0×–2.0×)
+ * chosen by bestSizeOffset() to maximise readability while fitting the card.
+ */
 import { CARD_W, CARD_H, BORDER, PACK, FONT_HEADING, FONT_BODY } from './constants.js';
 import { truncateText } from './utils.js';
 import { parseManaCost, preloadSymbols } from './symbols.js';
 
-// Find the largest scale multiplier (0–10 → 1.0×–2.0×) that fits all content on the card.
+/**
+ * Find the largest scale multiplier (0–10 → 1.0×–2.0×) whose total content
+ * height fits within the printable area. Tries from largest down to smallest,
+ * returning the first that fits. This lets small decklists use larger,
+ * more readable text while long lists shrink to fit.
+ */
 export function bestSizeOffset(groups, { showTitle = true } = {}) {
     const FOOTER_ZONE = CARD_H - BORDER - PACK.FOOTER_MARGIN;
     const FIXED_Y = showTitle
@@ -27,24 +56,30 @@ export function bestSizeOffset(groups, { showTitle = true } = {}) {
     return 0;
 }
 
+/**
+ * Render the packing-list card onto a canvas.
+ * Returns true if the content overflowed (some entries were cut off).
+ */
 export async function renderPackingList(groups, title, canvas, { showTitle = true } = {}) {
     const ctx = canvas.getContext('2d');
 
     await document.fonts.ready;
     const symbolMap = await preloadSymbols(groups);
 
+    // Compute the uniform scale factor — all spacing/font sizes are multiplied by S
     const sizeOffset = bestSizeOffset(groups, { showTitle });
     const S = 1 + sizeOffset * 0.1;
 
+    // Black border, white inner fill
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, CARD_W, CARD_H);
-
     const innerW = CARD_W - BORDER * 2;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(BORDER, BORDER, innerW, CARD_H - BORDER * 2);
 
-    const MARGIN_X = BORDER + PACK.CONTENT_PAD;
-    const MAX_X = CARD_W - BORDER - PACK.CONTENT_PAD;
+    // Scaled layout constants — all derived from PACK.BASE_* values × S
+    const MARGIN_X = BORDER + PACK.CONTENT_PAD;    // left edge of content
+    const MAX_X = CARD_W - BORDER - PACK.CONTENT_PAD; // right edge of content
     const ROW_H = Math.round(PACK.BASE_ROW_H * S);
     const BODY_SIZE = Math.round(PACK.BASE_BODY_SIZE * S);
     const HEADING_SIZE = Math.round(PACK.BASE_HEADING_SIZE * S);
@@ -55,7 +90,7 @@ export async function renderPackingList(groups, title, canvas, { showTitle = tru
     const ROW_PAD = Math.round(PACK.BASE_ROW_PAD * S);
     const SYM_PAD = Math.round(PACK.BASE_SYM_PAD * S);
     let overflow = false;
-    const FOOTER_ZONE = CARD_H - BORDER - PACK.FOOTER_MARGIN;
+    const FOOTER_ZONE = CARD_H - BORDER - PACK.FOOTER_MARGIN; // y-limit: stop rendering here
     let rowIndex = 0;
     let y;
 
@@ -82,11 +117,12 @@ export async function renderPackingList(groups, title, canvas, { showTitle = tru
 
     ctx.textAlign = 'left';
 
+    // --- Render each type group ---
     for (const [type, cards] of groups) {
         if (y > FOOTER_ZONE) { overflow = true; break; }
 
+        // Group heading: "CREATURE (5)" with underline
         const totalQty = cards.reduce((sum, c) => sum + c.qty, 0);
-
         ctx.fillStyle = PACK.COLOR_HEADING;
         ctx.font = 'bold ' + HEADING_SIZE + 'px ' + FONT_HEADING;
         const heading = type.toUpperCase() + ' (' + totalQty + ')';
@@ -101,27 +137,31 @@ export async function renderPackingList(groups, title, canvas, { showTitle = tru
         ctx.stroke();
         y += UNDERLINE_GAP;
 
+        // Card rows: alternating background, qty (bold) + name + mana symbols (right-aligned)
         rowIndex = 0;
         for (const card of cards) {
             if (y > FOOTER_ZONE) { overflow = true; break; }
 
+            // Zebra-stripe row background
             const rowBg = rowIndex % 2 === 0 ? PACK.COLOR_ROW_EVEN : PACK.COLOR_ROW_ODD;
             ctx.fillStyle = rowBg;
             ctx.fillRect(MARGIN_X, y - ROW_H + ROW_PAD, MAX_X - MARGIN_X, ROW_H);
             rowIndex++;
 
+            // Measure mana symbols first so we know how much space the name has
             const symbols = parseManaCost(card.manaCost);
             const symbolsWidth = symbols.length > 0
                 ? symbols.length * (SYM_SIZE + SYM_PAD) - SYM_PAD
                 : 0;
 
+            // Quantity (bold)
             const qtyStr = card.qty + ' ';
-
             ctx.font = 'bold ' + BODY_SIZE + 'px ' + FONT_BODY;
             ctx.fillStyle = PACK.COLOR_TEXT;
             ctx.fillText(qtyStr, MARGIN_X + PACK.CELL_PAD, y);
             const qtyWidth = ctx.measureText(qtyStr).width;
 
+            // Card name (regular weight, truncated with "..." if needed)
             ctx.font = BODY_SIZE + 'px ' + FONT_BODY;
             ctx.fillStyle = PACK.COLOR_TEXT;
             const nameX = MARGIN_X + PACK.CELL_PAD + qtyWidth;
@@ -129,6 +169,7 @@ export async function renderPackingList(groups, title, canvas, { showTitle = tru
             const truncName = truncateText(ctx, card.name, nameMaxWidth);
             ctx.fillText(truncName, nameX, y);
 
+            // Mana symbols — right-aligned at the end of the row
             let symX = MAX_X - PACK.CELL_PAD - symbolsWidth;
             for (const sym of symbols) {
                 const img = symbolMap.get(sym);

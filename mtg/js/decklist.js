@@ -1,9 +1,16 @@
 import { TYPE_PRIORITY } from './constants.js';
 import { sleep } from './utils.js';
 
+/**
+ * Parse a raw decklist string into an array of { name, qty } objects.
+ * Handles common export formats (MTGA, Moxfield, Archidekt, etc.)
+ * and consolidates duplicate card names.
+ */
 export function parseDecklist(raw) {
     const lines = raw.split(/\r?\n/);
+    // Skip section headers and comments common in exported decklists
     const skipPattern = /^(\/\/|#|deck\b|sideboard\b|commander\b|companion\b|maybeboard\b)/i;
+    // Match lines like "4 Lightning Bolt" or "4x Lightning Bolt"
     const linePattern = /^(\d+)x?\s+(.+)$/;
     const consolidated = new Map();
 
@@ -41,6 +48,13 @@ export function parseDecklist(raw) {
     return Array.from(consolidated.values());
 }
 
+/**
+ * Look up card metadata (type line, mana cost, colour identity) from Scryfall.
+ * Sends requests in batches of 75 (Scryfall's collection endpoint limit)
+ * with a 100 ms delay between batches to respect rate limits.
+ *
+ * Returns { found: [...cards with metadata], notFound: [names], colorIdentity: Set }
+ */
 export async function fetchCardTypes(cards) {
     const names = [...new Set(cards.map(c => c.name))];
     const BATCH_SIZE = 75; // Scryfall /cards/collection max per request
@@ -99,6 +113,11 @@ export async function fetchCardTypes(cards) {
     };
 }
 
+/**
+ * Group cards by their primary type (Creature, Instant, etc.) and sort
+ * the groups in the canonical order defined by TYPE_PRIORITY.
+ * Cards that Scryfall didn't recognise are placed in an "Unknown" group at the end.
+ */
 export function groupByType(foundCards, notFoundNames, allCards) {
     const groups = new Map();
 
@@ -113,14 +132,17 @@ export function groupByType(foundCards, notFoundNames, allCards) {
     }
 
     if (notFoundNames.length > 0) {
-        const unknownCards = allCards.filter(c =>
-            notFoundNames.some(nf => nf.toLowerCase() === c.name.toLowerCase())
-        );
+        const notFoundSet = new Set(notFoundNames.map(nf => nf.toLowerCase()));
+        const unknownCards = allCards.filter(c => notFoundSet.has(c.name.toLowerCase()));
         if (unknownCards.length > 0) {
             groups.set('Unknown', unknownCards.map(c => ({ ...c, typeLine: 'Unknown', manaCost: '' })));
         }
     }
 
+    // Build the final array in three tiers:
+    // 1. Known types in TYPE_PRIORITY order (Creature, Instant, Sorcery, …)
+    // 2. Any types not in the priority list (edge cases)
+    // 3. Unknown cards last
     const sorted = [];
     for (const type of TYPE_PRIORITY) {
         if (groups.has(type)) sorted.push([type, groups.get(type)]);
@@ -135,9 +157,14 @@ export function groupByType(foundCards, notFoundNames, allCards) {
     return sorted;
 }
 
+/**
+ * Extract the most relevant card type from a full type line.
+ * e.g. "Legendary Artifact Creature — Golem" → "Creature"
+ *      "Enchantment // Creature — God" → "Enchantment" (first face only)
+ */
 export function extractPrimaryType(typeLine) {
     const face = typeLine.split('//')[0].trim();       // first face of double-faced cards
-    const mainPart = face.split(/\u2014/)[0].trim(); // supertypes/types before the em-dash
+    const mainPart = face.split(/\u2014/)[0].trim();   // supertypes/types before the em-dash
     const words = mainPart.split(/\s+/);
 
     for (const type of TYPE_PRIORITY) {

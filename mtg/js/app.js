@@ -1,4 +1,16 @@
-import { slugify, shrinkFontToFit, showStatus as _showStatus, clearStatus as _clearStatus } from './utils.js';
+/**
+ * App entry point — wires together the UI for the Jumpstart card builder.
+ *
+ * User workflow:
+ *   1. (Optional) Paste a decklist → parsed, looked up on Scryfall, rendered
+ *      as a packing-list card. Colour identity is auto-detected.
+ *   2. (Optional) Upload artwork → positioned in the cropper, rendered as a
+ *      theme card with name bar, gradient, and mana symbols.
+ *   3. Add cards to the print sheet (single, or front/back pair) → export PDF.
+ *
+ * Each feature area is a section below, roughly in UI order.
+ */
+import { slugify, shrinkFontToFit, showStatus as _showStatus } from './utils.js';
 import { parseDecklist, fetchCardTypes, groupByType } from './decklist.js';
 import ImageCropper from './cropper.js';
 import { renderPackingList } from './packing-renderer.js';
@@ -35,8 +47,8 @@ const themeSheetBtn = document.getElementById('theme-sheet-btn');
 const pairSheetBtn = document.getElementById('pair-sheet-btn');
 
 /* ===== Bound Status Functions ===== */
+// Bind the growl container so callers only need (msg, type)
 const showStatus = (msg, type) => _showStatus(growlContainer, msg, type);
-const clearStatus = () => _clearStatus();
 
 /* ===== Helpers ===== */
 function getThemeName(fallback = '') {
@@ -44,21 +56,31 @@ function getThemeName(fallback = '') {
 }
 
 /* ===== Packing Edit / View Toggle ===== */
+// Toggles between the decklist textarea (edit) and the rendered card (view).
+// lastPackingGroups caches the most recent grouped card data so the card
+// can be re-rendered when the theme name or "show title" option changes.
 let lastPackingGroups = null;
 
 function showPackingView() {
     packingEdit.classList.add('hidden');
     packingView.classList.remove('hidden');
+    updatePairButtonVisibility();
 }
 
 function showPackingEdit() {
     packingView.classList.add('hidden');
     packingEdit.classList.remove('hidden');
+    updatePairButtonVisibility();
 }
 
 packingEditBtn.addEventListener('click', showPackingEdit);
 
 /* ===== Theme Name Input ===== */
+/**
+ * Sync the live-preview overlay on the cropper with the current theme name.
+ * Uses visibility (not display:none) when empty so the overlay's name bar
+ * still occupies layout space and the gradient stays positioned correctly.
+ */
 function updateThemeOverlay() {
     const text = themeInput.value.trim();
     themeOverlayName.textContent = text;
@@ -80,30 +102,26 @@ function updateThemeOverlay() {
     }
 }
 
-themeInput.addEventListener('input', async () => {
-    updateThemeOverlay();
-    if (!lastPackingGroups) return;
-    if (!packingView.classList.contains('hidden')) {
-        try {
-            packingDownload.href = await snapshotPackingCard();
-            const name = getThemeName();
-            packingDownload.download = slugify(name ? name + '-packing-list' : 'packing-list') + '.png';
-        } catch (err) {
-            showStatus('Failed to update packing list.', 'error');
-        }
+/** Re-render the visible packing card and update its download link. */
+async function refreshPackingIfVisible() {
+    if (!lastPackingGroups || packingView.classList.contains('hidden')) return;
+    try {
+        packingDownload.href = await snapshotPackingCard();
+        const name = getThemeName();
+        packingDownload.download = slugify(name ? name + '-packing-list' : 'packing-list') + '.png';
+    } catch (err) {
+        showStatus('Failed to update packing list.', 'error');
     }
+}
+
+// Re-render the packing list live as the user types, since the theme name
+// appears as the card title. Only fires when a packing list is visible.
+themeInput.addEventListener('input', () => {
+    updateThemeOverlay();
+    refreshPackingIfVisible();
 });
 
-packingShowTitleCheck.addEventListener('change', async () => {
-    if (!lastPackingGroups) return;
-    if (!packingView.classList.contains('hidden')) {
-        try {
-            packingDownload.href = await snapshotPackingCard();
-        } catch (err) {
-            showStatus('Failed to update packing list.', 'error');
-        }
-    }
-});
+packingShowTitleCheck.addEventListener('change', refreshPackingIfVisible);
 
 /* ===== Gradient Toggle ===== */
 themeGradientCheck.addEventListener('change', () => {
@@ -111,6 +129,8 @@ themeGradientCheck.addEventListener('change', () => {
 });
 
 /* ===== Color Identity State ===== */
+// Tracks which WUBRG colours are active. Auto-populated from Scryfall results
+// but can be manually toggled by the user via the colour buttons.
 const selectedColors = new Set();
 
 colorToggles.forEach(btn => {
@@ -127,6 +147,7 @@ colorToggles.forEach(btn => {
     });
 });
 
+/** Programmatically set the colour identity (e.g. from Scryfall results). */
 function setColorIdentity(colors) {
     selectedColors.clear();
     colorToggles.forEach(btn => btn.classList.remove('active'));
@@ -138,6 +159,7 @@ function setColorIdentity(colors) {
     updateColorOverlay();
 }
 
+/** Rebuild the mana symbol icons in the theme card's live-preview overlay. */
 function updateColorOverlay() {
     themeOverlayColors.replaceChildren();
     const colors = ['W', 'U', 'B', 'R', 'G'].filter(c => selectedColors.has(c));
@@ -207,6 +229,9 @@ const sheet = initSheet({
 });
 
 /* ===== Snapshots for Sheet ===== */
+// Snapshot functions re-render a card to the offscreen canvas and return
+// a data URL. Used when adding cards to the print sheet or downloading.
+
 async function snapshotPackingCard() {
     await renderPackingList(lastPackingGroups, getThemeName('Packing List'), packingCanvas, { showTitle: packingShowTitleCheck.checked });
     return packingCanvas.toDataURL('image/png');
@@ -253,19 +278,22 @@ pairSheetBtn.addEventListener('click', async () => {
 });
 
 /* ===== Pair Button Visibility ===== */
+// The "Add pair" button only makes sense when both a packing list AND a theme
+// card are available. Show/hide it whenever either state changes.
 function updatePairButtonVisibility() {
     const hasPackingList = !packingView.classList.contains('hidden') && lastPackingGroups;
     const hasThemeCard = cropper.loaded;
     pairSheetBtn.classList.toggle('hidden', !(hasPackingList && hasThemeCard));
 }
 
-packingEditBtn.addEventListener('click', updatePairButtonVisibility);
-const pairObserver = new MutationObserver(updatePairButtonVisibility);
-pairObserver.observe(packingView, { attributes: true, attributeFilter: ['class'] });
-
 /* ===== Generate (main flow) ===== */
 generateBtn.addEventListener('click', run);
 
+/**
+ * Parse the decklist, look up card data on Scryfall, render the packing list,
+ * and auto-set the colour identity from the results.
+ * Returns { error: true } on failure, or { overflow: boolean } on success.
+ */
 async function generatePackingList(themeName) {
     const cards = parseDecklist(decklistEl.value.trim());
     if (cards.length === 0) {
@@ -302,6 +330,7 @@ async function generatePackingList(themeName) {
     return { overflow };
 }
 
+/** Render the theme card from the current cropper state + selected colours. */
 async function generateThemeCard(themeName) {
     await renderThemeCard(themeCanvas, cropper, selectedColors, themeName, { showGradient: themeGradientCheck.checked });
 
@@ -309,8 +338,13 @@ async function generateThemeCard(themeName) {
     themeDownload.download = slugify(themeName ? themeName + '-theme-card' : 'theme-card') + '.png';
 }
 
+/**
+ * Main generate handler — runs whichever outputs are available:
+ *   - decklist present → packing list card
+ *   - image loaded    → theme card
+ *   - both            → both cards, plus the "add pair" button becomes visible
+ */
 async function run() {
-    clearStatus();
     generateBtn.disabled = true;
 
     try {
@@ -337,8 +371,6 @@ async function run() {
 
         if (overflow) {
             showStatus('List too long for card — some entries were cut off.', 'warning');
-        } else {
-            clearStatus();
         }
     } catch (err) {
         showStatus('Error: ' + (err.message || 'Something went wrong.'), 'error');

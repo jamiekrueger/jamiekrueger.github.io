@@ -40,7 +40,7 @@
 
             <!-- Packing List -->
             <div class="card-column">
-                <div class="packing-edit-card" id="packing-edit">
+                <div class="card-frame packing-edit-card" id="packing-edit">
                     <div class="packing-edit-inner">
                         <textarea
                             id="decklist"
@@ -71,7 +71,7 @@
 
             <!-- Theme Card -->
             <div class="card-column">
-                <div class="card-slot" id="theme-slot">
+                <div class="card-frame card-slot" id="theme-slot">
                     <div class="card-slot-inner">
                         <div id="upload-zone" class="upload-zone">
                             <span class="upload-icon">&#x1F5BC;&#xFE0F;</span>
@@ -170,7 +170,7 @@
                 <div class="sheet-double-options" id="sheet-offset-row" style="display:none">
                     <label class="sheet-label">
                         Back offset
-                        <span class="help-icon" tabindex="0" aria-label="What is back offset?">?<span class="help-tooltip">Shifts the back page up or down to align with the front when duplex printing. Adjust if your printer's double-sided output is slightly misaligned.</span></span>
+                        <span class="help-icon" tabindex="0" aria-label="What is back offset?">?<span class="help-tooltip">Shifts the back page to align with the front when duplex printing. Positive values move the back page down, negative values move it up. Adjust if your printer's double-sided output is slightly misaligned.</span></span>
                         <input id="sheet-back-offset" type="number" class="sheet-number-input" value="0" step="0.5"> mm
                     </label>
                     <button id="sheet-test-btn" class="btn sheet-btn" type="button">Download Test Page</button>

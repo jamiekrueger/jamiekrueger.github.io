@@ -38,7 +38,7 @@ export const PACK = {
 
 /* Theme card overlay layout */
 export const THEME = {
-    ZONE_RATIO: 2 / 13,     // name bar & gradient each take 2/13 of inner height
+    ZONE_RATIO: 2 / 13,      // name bar & gradient each take 2/13 of inner height
     NAME_PAD: 60,            // horizontal padding for name text
     MIN_NAME_SIZE: 16,       // min font size when shrinking to fit
     NAME_SHRINK_STEP: 2,     // font size decrement per iteration
@@ -55,7 +55,7 @@ export const SHEET = {
     COLS: 3,
     ROWS: 3,
     CARDS_PER_PAGE: 9,
-    PAPER: {
+    PAPER: { // dimensions in mm
         letter: { w: 215.9, h: 279.4, label: 'Letter' },
         a4:     { w: 210,   h: 297,   label: 'A4' }
     }
