@@ -187,6 +187,13 @@ const cropper = new ImageCropper({
         document.getElementById('change-image-btn').classList.remove('hidden');
         updateThemeOverlay();
         updatePairButtonVisibility();
+        // Show mobile gesture hint
+        const hint = document.getElementById('gesture-hint');
+        hint.classList.remove('hidden');
+        // Re-trigger animation on subsequent image loads
+        hint.style.animation = 'none';
+        hint.offsetHeight; // force reflow
+        hint.style.animation = '';
     },
     onError() {
         showStatus('Failed to load image.', 'error');
