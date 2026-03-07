@@ -85,6 +85,7 @@ export async function fetchCardTypes(cards) {
         if (data.data) {
             for (const card of data.data) {
                 found.set(card.name.toLowerCase(), {
+                    name: card.name,
                     typeLine: card.type_line,
                     manaCost: card.mana_cost || ''
                 });
@@ -106,7 +107,7 @@ export async function fetchCardTypes(cards) {
     return {
         found: cards.filter(c => found.has(c.name.toLowerCase())).map(c => {
             const info = found.get(c.name.toLowerCase());
-            return { ...c, typeLine: info.typeLine, manaCost: info.manaCost };
+            return { ...c, name: info.name, typeLine: info.typeLine, manaCost: info.manaCost };
         }),
         notFound,
         colorIdentity: allColorIdentity

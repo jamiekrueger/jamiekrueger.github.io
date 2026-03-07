@@ -1033,9 +1033,9 @@ html {
 .coffee-mug__label {
   position: absolute;
   top: 50%;
-  left: 50%;
+  left: 52%;
   transform: translate(-50%, -50%);
-  font-size: 0.4vw;
+  font-size: 0.5vw;
   color: #5a4a3a;
 }
 
@@ -1097,11 +1097,11 @@ html {
 
 .notebook__label {
   position: absolute;
-  top: 0.4vw;
+  top: 0.3vw;
   left: 0;
   right: 0;
   text-align: center;
-  font-size: 0.4vw;
+  font-size: 0.6vw;
   color: #334;
 }
 
@@ -1459,7 +1459,7 @@ html {
   }
 
   .coffee-mug__label {
-    font-size: 8px;
+    font-size: 12px;
   }
 
   /* Notebook — fixed mobile sizes */
@@ -1501,7 +1501,7 @@ html {
   }
 
   .notebook__label {
-    top: 10px;
-    font-size: 10px;
+    top: 5px;
+    font-size: 14px;
   }
 }
