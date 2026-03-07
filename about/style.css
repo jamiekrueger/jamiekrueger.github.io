@@ -24,33 +24,13 @@ a:hover { text-decoration: underline; }
     padding: 2.5rem 1.5rem 4rem;
 }
 
-/* ---------- Nav bar ---------- */
-.nav {
-    background: #16213e;
-    border-bottom: 3px solid #7ec8e3;
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-.nav a {
-    color: #7ec8e3;
-    text-decoration: none;
-    font-size: 0.75rem;
-    position: absolute;
-    left: 1.5rem;
-}
-
-.nav a:hover {
-    color: #fff;
-}
-
-.nav h1 {
-    color: #e0e0e0;
-    font-size: 0.9rem;
-    text-align: center;
+/* ---------- Nav bar colors ---------- */
+:root {
+    --nav-bg: #16213e;
+    --nav-border: #7ec8e3;
+    --nav-link: #7ec8e3;
+    --nav-link-hover: #fff;
+    --nav-title: #e0e0e0;
 }
 
 /* ---------- Timeline container ---------- */
@@ -410,23 +390,6 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
     .page {
         padding: 1.5rem 1rem 3rem;
-    }
-
-    .nav {
-        padding: 0.75rem 1rem;
-    }
-
-    .nav a {
-        font-size: 0.55rem;
-        left: 1rem;
-    }
-
-    .nav .nav-label {
-        display: none;
-    }
-
-    .nav h1 {
-        font-size: 0.7rem;
     }
 
     /* Move timeline line to the left */

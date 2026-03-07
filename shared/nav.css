@@ -1,0 +1,60 @@
+/* Shared nav bar – include on all subpages.
+   Each page sets these custom properties:
+     --nav-bg
+     --nav-border
+     --nav-link
+     --nav-link-hover
+     --nav-title
+*/
+
+.nav {
+    background: var(--nav-bg, #16213e);
+    border-bottom: 3px solid var(--nav-border, #7ec8e3);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+    font-family: 'Press Start 2P', monospace;
+    line-height: 1.2;
+}
+
+.nav a {
+    color: var(--nav-link, #7ec8e3);
+    text-decoration: none;
+    font-size: 12px;
+    transition: color 0.15s ease;
+    position: absolute;
+    left: 24px;
+}
+
+.nav a:hover {
+    color: var(--nav-link-hover, #fff);
+    text-decoration: none;
+}
+
+.nav h1 {
+    color: var(--nav-title, #e0e0e0);
+    font-size: 20px;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .nav {
+        padding: 12px 16px;
+    }
+
+    .nav a {
+        font-size: 9px;
+        left: 16px;
+    }
+
+    .nav h1 {
+        font-size: 9px;
+    }
+
+    .nav .nav-label {
+        display: none;
+    }
+}
