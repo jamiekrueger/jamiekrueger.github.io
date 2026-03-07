@@ -11,7 +11,6 @@ body {
     color: #e0e0e0;
     min-height: 100vh;
     line-height: 1.8;
-    font-size: 10px;
 }
 
 a { color: #7ec8e3; text-decoration: none; }
@@ -19,7 +18,7 @@ a:hover { text-decoration: underline; }
 
 /* ---------- Page wrapper ---------- */
 .page {
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 2.5rem 1.5rem 4rem;
 }
@@ -134,7 +133,7 @@ a:hover { text-decoration: underline; }
 
 /* ---------- Entry heading (location) ---------- */
 .entry-heading {
-    font-size: 0.85rem;
+    font-size: var(--font-md);
     color: #e0e0e0;
     margin-bottom: 0.3rem;
 }
@@ -145,7 +144,7 @@ a:hover { text-decoration: underline; }
 
 /* ---------- Entry description ---------- */
 .entry-desc {
-    font-size: 0.65rem;
+    font-size: var(--font-sm);
     color: #b0b0c0;
     line-height: 2;
 }
@@ -290,7 +289,7 @@ a:hover { text-decoration: underline; }
     background: #0a2a0a;
     border: 2px solid #888;
     border-radius: 2px;
-    font-size: 0.45rem;
+    font-size: var(--font-2xs);
     color: #33ff33;
     font-family: 'Press Start 2P', monospace;
     padding: 5px 4px;
@@ -346,7 +345,7 @@ a:hover { text-decoration: underline; }
 /* ---------- Current position indicator ---------- */
 .current-indicator {
     display: inline-block;
-    font-size: 0.6rem;
+    font-size: var(--font-xs);
     color: #7ec8e3;
     margin-top: 0.5rem;
 }
@@ -361,7 +360,7 @@ a:hover { text-decoration: underline; }
 .connect-link {
     text-align: center;
     margin-top: 2rem;
-    font-size: 0.85rem;
+    font-size: var(--font-md);
 }
 .connect-link a {
     color: #ffffff;

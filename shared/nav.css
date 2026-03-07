@@ -23,7 +23,7 @@
 .nav a {
     color: var(--nav-link, #7ec8e3);
     text-decoration: none;
-    font-size: 12px;
+    font-size: var(--font-sm);
     transition: color 0.15s ease;
     position: absolute;
     left: 24px;
@@ -36,7 +36,7 @@
 
 .nav h1 {
     color: var(--nav-title, #e0e0e0);
-    font-size: 20px;
+    font-size: var(--font-lg);
     text-align: center;
 }
 
@@ -46,12 +46,12 @@
     }
 
     .nav a {
-        font-size: 9px;
+        font-size: var(--font-sm);
         left: 16px;
     }
 
     .nav h1 {
-        font-size: 9px;
+        font-size: var(--font-sm);
     }
 
     .nav .nav-label {

@@ -1,0 +1,11 @@
+/* Shared type scale – include on all subpages (homepage excluded).
+   Based on 16px browser default. */
+:root {
+    --font-2xs:  0.5rem;    /*  8px – icon text       */
+    --font-xs:   0.625rem;  /* 10px – small labels    */
+    --font-sm:   0.75rem;   /* 12px – nav links, desc */
+    --font-base: 0.875rem;  /* 14px – body text       */
+    --font-md:   1rem;      /* 16px – entry headings  */
+    --font-lg:   1.25rem;   /* 20px – nav title       */
+    --font-xl:   1.5rem;    /* 24px – page headings   */
+}

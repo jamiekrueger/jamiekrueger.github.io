@@ -16,6 +16,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/shared/typography.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -31,28 +32,29 @@
             text-align: center;
         }
         h1 {
-            font-size: 3rem;
+            font-size: var(--font-xl);
             margin-bottom: 1.5rem;
             color: #7ec8e3;
         }
         p {
-            font-size: 1.2rem;
+            font-size: var(--font-base);
             line-height: 2;
             margin-bottom: 2rem;
         }
         a {
             color: #7ec8e3;
             text-decoration: none;
-            font-size: 1rem;
+            font-size: var(--font-sm);
+            transition: color 0.15s ease;
         }
-        a:hover { text-decoration: underline; }
+        a:hover { color: #fff; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Blog</h1>
-        <p>Coming soon.</p>
-        <a class="back" href="/">← Back to work</a>
+        <h1>🚧 Blog 🚧</h1>
+        <p>Under construction</p>
+        <a class="back" href="/">&lt; Back to work</a>
     </div>
 </body>
 </html>
