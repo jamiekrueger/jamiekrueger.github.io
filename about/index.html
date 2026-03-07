@@ -16,43 +16,61 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Press Start 2P', monospace;
-            background: #1a1a2e;
-            color: #e0e0e0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .container {
-            text-align: center;
-        }
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-            color: #7ec8e3;
-        }
-        p {
-            font-size: 1.2rem;
-            line-height: 2;
-            margin-bottom: 2rem;
-        }
-        a {
-            color: #7ec8e3;
-            text-decoration: none;
-            font-size: 1rem;
-        }
-        a:hover { text-decoration: underline; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+    <nav class="nav">
+        <a href="/">&lt;<span class="nav-label"> Home</span></a>
         <h1>About</h1>
-        <p>Coming soon.</p>
-        <a class="back" href="/">← Back to desk</a>
+    </nav>
+    <div class="page">
+
+        <div class="timeline">
+
+            <div class="timeline-entry">
+                <div class="pixel-icon icon-ohio"></div>
+                <div class="dialog-panel">
+                    <h2 class="entry-heading">Mason, Ohio</h2>
+                    <p class="entry-desc">There's no place like home.</p>
+                </div>
+            </div>
+
+            <div class="timeline-entry">
+                <div class="pixel-icon icon-denmark"></div>
+                <div class="dialog-panel">
+                    <h2 class="entry-heading"><span class="entry-year">2018</span> · Denmark</h2>
+                    <p class="entry-desc">Served as a missionary for the Church of Jesus Christ of Latter-day Saints. Learned Danish. Ate an unreasonable amount of risalamande.</p>
+                </div>
+            </div>
+
+            <div class="timeline-entry">
+                <div class="pixel-icon icon-byu"></div>
+                <div class="dialog-panel">
+                    <h2 class="entry-heading"><span class="entry-year">2021</span> · BYU, Provo, Utah</h2>
+                    <p class="entry-desc">Bachelor of Science in Computer Science — Magna Cum Laude</p>
+                </div>
+            </div>
+
+            <div class="timeline-entry">
+                <div class="pixel-icon icon-terminal"></div>
+                <div class="dialog-panel">
+                    <h2 class="entry-heading"><span class="entry-year">2022</span> · BYU Office of IT</h2>
+                    <p class="entry-desc">First dev role — shipped features across payment and campus apps, built CI/CD pipelines, and grew into leading a team of student developers.</p>
+                </div>
+            </div>
+
+            <div class="timeline-entry">
+                <div class="pixel-icon icon-lucid"></div>
+                <div class="dialog-panel">
+                    <h2 class="entry-heading"><span class="entry-year">2024</span> · Lucid Software</h2>
+                    <p class="entry-desc">Software developer working on visual collaboration tools.</p>
+                    <span class="current-indicator">CURRENT</span>
+                </div>
+            </div>
+
+        </div>
+
+        <p class="connect-link"><a href="https://www.linkedin.com/in/jamiekrueger/">Connect with me on LinkedIn</a></p>
     </div>
 </body>
 </html>
