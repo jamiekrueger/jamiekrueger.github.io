@@ -37,6 +37,18 @@
  *     keeping the shadow nearly stationary on the desk surface
  */
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ===== Reset & Pixel Art Foundation ===== */
 *,
 *::before,
@@ -119,7 +131,7 @@ html {
   left: 2vw;
   z-index: 10;
   font-size: 1.4vw;
-  color: #3b2a1a;
+  color: #000;
   margin: 0;
   letter-spacing: 0.05em;
 }

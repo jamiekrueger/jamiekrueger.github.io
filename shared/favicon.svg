@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="8" fill="#000"/>
+  <g fill="#f0ead4">
+    <!-- j: tittle -->
+    <rect x="16" y="14" width="8" height="4"/>
+    <!-- j: stem -->
+    <rect x="16" y="22" width="8" height="24"/>
+    <!-- j: hook -->
+    <rect x="12" y="46" width="8" height="4"/>
+    <!-- k: stem -->
+    <rect x="32" y="14" width="8" height="36"/>
+    <!-- k: arm -->
+    <rect x="44" y="26" width="8" height="4"/>
+    <rect x="40" y="30" width="8" height="4"/>
+    <!-- k: elbow -->
+    <rect x="40" y="34" width="4" height="4"/>
+    <!-- k: leg -->
+    <rect x="40" y="38" width="8" height="4"/>
+    <rect x="44" y="42" width="8" height="4"/>
+  </g>
+</svg>
