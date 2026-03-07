@@ -136,6 +136,9 @@ html {
   letter-spacing: 0.05em;
 }
 
+/* ===== Mobile Nav (hidden on desktop) ===== */
+.mobile-nav { display: none; }
+
 /* ===== Wall ===== */
 .wall {
   position: absolute;
@@ -1321,40 +1324,34 @@ html {
 .chair__base::before { left: -0.8vw; }
 .chair__base::after { right: -0.8vw; }
 
-/* ===== Responsive: mobile stacked layout =====
-   On mobile, the room scene is hidden entirely. Desk objects are shown
-   as a vertically centered scrolling list on a plain background.
-   All vw units are overridden with fixed px because vw is too small
-   on narrow viewports. */
+/* ===== Responsive: mobile retro menu =====
+   On mobile, the room scene is hidden entirely. A dark retro menu screen
+   with styled nav cards replaces the desk objects, matching the about
+   page's dialog-panel aesthetic. */
 @media (max-width: 640px) {
   html, body {
     overflow: auto;
+    background: #1a1a2e;
   }
 
   .scene {
     height: auto;
     min-height: 100vh;
-    background: #e8e8e8;
+    background: #1a1a2e;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem 1rem;
-    gap: 2rem;
+    padding: 3rem 1.25rem;
+    gap: 0;
   }
 
   .scene::before { display: none; }
 
-  /* display:contents dissolves the 16:9 wrapper so children participate
-     directly in .scene's flex layout alongside .desk's contents */
   .room-content { display: contents; }
 
   .wall,
   .floor,
-  .desk-front,
-  .desk-leg,
-  .monitor,
-  .keyboard,
-  .mouse,
+  .desk,
   .chair-person {
     display: none;
   }
@@ -1363,157 +1360,67 @@ html {
     position: static;
     text-align: center;
     font-size: 1.2rem;
+    color: #e0e0e0;
+    margin-bottom: 2rem;
+  }
+
+  /* ===== Mobile Nav ===== */
+  .mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .mobile-nav__card {
+    display: block;
+    text-decoration: none;
+    background: #16213e;
+    border: 3px solid #7ec8e3;
+    box-shadow: 6px 6px 0 #0f3460, inset 0 0 0 2px #0f3460;
+    padding: 1.25rem 1.5rem;
+    opacity: 0;
+    animation: mobileNavFadeIn 0.5s ease forwards;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .mobile-nav__card:nth-child(1) { animation-delay: 0.1s; }
+  .mobile-nav__card:nth-child(2) { animation-delay: 0.25s; }
+  .mobile-nav__card:nth-child(3) { animation-delay: 0.4s; }
+
+  .mobile-nav__card:hover {
+    transform: translateY(-3px);
+    box-shadow: 6px 9px 0 #0f3460, inset 0 0 0 2px #0f3460;
+  }
+
+  .mobile-nav__card:active {
+    transform: translateY(1px);
+    box-shadow: 4px 4px 0 #0f3460, inset 0 0 0 2px #0f3460;
+  }
+
+  .mobile-nav__label {
+    display: block;
+    font-size: 1rem;
+    color: #e0e0e0;
     margin-bottom: 0.5rem;
   }
 
-  /* display:contents dissolves desk from layout so children participate
-     directly in scene's flex context */
-  .desk {
-    position: relative;
-    inset: auto;
-    display: contents;
+  .mobile-nav__desc {
+    display: block;
+    font-size: 0.6rem;
+    color: #b0b0c0;
+    line-height: 1.6;
   }
 
-  .desk-surface {
-    position: relative;
-    height: auto;
-    transform: none;
-    transform-style: flat; /* Disable preserve-3d — no perspective needed on mobile */
-    background: none !important;
-    border: none !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2rem;
-    padding: 0;
-  }
-
-  /* position:relative (not static) preserves containing block for absolutely
-     positioned children like steam, handle, and mug label.
-     Inset reset (auto) overrides desktop absolute positioning. */
-  .desk-object {
-    position: relative !important;
-    transform: none !important;
-    flex-shrink: 0;
-    top: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    right: auto !important;
-  }
-
-
-  .desk-object:hover {
-    transform: translateY(-4px) !important;
-  }
-
-  /* MTG Card — fixed mobile sizes */
-  .mtg-card {
-    width: 80px;
-    height: 112px;
-    border-width: 2px;
-  }
-
-  .mtg-card__back {
-    border-width: 2px;
-  }
-
-  .mtg-card__oval::before {
-    background:
-      linear-gradient(#eac02f, #eac02f) 50% 25% / 5px 5px no-repeat,
-      linear-gradient(#438bac, #438bac) 72% 43% / 5px 5px no-repeat,
-      linear-gradient(#332914, #332914) 65% 66% / 5px 5px no-repeat,
-      linear-gradient(#d73f27, #d73f27) 35% 66% / 5px 5px no-repeat,
-      linear-gradient(#64cb12, #64cb12) 28% 43% / 5px 5px no-repeat;
-  }
-
-  .mtg-card__back::after {
-    background:
-      linear-gradient(#c36120, #c36120) 8% 6% / 4px 4px no-repeat,
-      linear-gradient(#c36120, #c36120) 92% 6% / 4px 4px no-repeat,
-      linear-gradient(#c36120, #c36120) 8% 94% / 4px 4px no-repeat,
-      linear-gradient(#c36120, #c36120) 92% 94% / 4px 4px no-repeat;
-  }
-
-  /* Coffee Mug — fixed mobile sizes */
-  .coffee-mug {
-    width: 100px;
-    height: 80px;
-    margin-top: 30px; /* Extra top margin accounts for steam animation above mug */
-  }
-
-  .coffee-mug__body {
-    width: 72px;
-    height: 100%;
-    border-width: 3px;
-    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
-  }
-
-  .coffee-mug__body::before {
-    width: 50px;
-    height: 60px;
-    opacity: 0.4;
-    background:
-      linear-gradient(#fff, #fff) 15% 80% / 3px 3px no-repeat,
-      linear-gradient(#fff, #fff) 10% 65% / 3px 3px no-repeat,
-      linear-gradient(#fff, #fff) 18% 50% / 3px 3px no-repeat,
-      linear-gradient(#fff, #fff) 50% 85% / 3px 3px no-repeat,
-      linear-gradient(#fff, #fff) 55% 70% / 3px 3px no-repeat,
-      linear-gradient(#fff, #fff) 48% 55% / 3px 3px no-repeat,
-      linear-gradient(#fff, #fff) 80% 78% / 3px 3px no-repeat,
-      linear-gradient(#fff, #fff) 85% 62% / 3px 3px no-repeat;
-  }
-
-  .coffee-mug__handle {
-    top: 16px;
-    width: 24px;
-    height: 38px;
-    border-width: 3px;
-  }
-
-  .coffee-mug__label {
-    font-size: 12px;
-  }
-
-  /* Notebook — fixed mobile sizes */
-  .notebook {
-    width: 160px;
-    height: 200px;
-    transform: none !important;
-    border-width: 3px;
-    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
-  }
-
-  .notebook:hover {
-    transform: translateY(-4px) !important;
-    box-shadow: 3px 6px 0 rgba(0, 0, 0, 0.4);
-  }
-
-  .notebook__binding {
-    left: 8px;
-    width: 14px;
-  }
-
-  .notebook__ring {
-    width: 12px;
-    height: 7px;
-    border-width: 2px;
-  }
-
-  .notebook__page {
-    top: 10px;
-    left: 28px;
-    right: 8px;
-    bottom: 10px;
-    padding-top: 20px; /* Pushes lines below the "Blog" label */
-  }
-
-  .notebook__line {
-    height: 2px;
-    margin-bottom: 14px;
-  }
-
-  .notebook__label {
-    top: 5px;
-    font-size: 14px;
+  @keyframes mobileNavFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
