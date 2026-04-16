@@ -84,26 +84,28 @@ export async function fetchCardTypes(cards) {
 
         if (data.data) {
             for (const card of data.data) {
-                // For double-faced cards, mana_cost lives on card_faces, not root
-                const manaCost = card.mana_cost
-                    || (card.card_faces && card.card_faces[0]?.mana_cost)
-                    || '';
-                // Use front face name for DFCs (matches how players write decklists)
-                const displayName = card.card_faces
-                    ? card.card_faces[0].name
-                    : card.name;
-                const info = {
-                    name: displayName,
+                const faces = card.card_faces;
+
+                // Default entry (front face for DFCs, or the card itself)
+                const defaultInfo = {
+                    name: faces ? faces[0].name : card.name,
                     typeLine: card.type_line,
-                    manaCost
+                    manaCost: (faces && faces[0]?.mana_cost) || card.mana_cost || ''
                 };
-                found.set(card.name.toLowerCase(), info);
-                // Also index by each face name so user input matches either face
-                if (card.card_faces) {
-                    for (const face of card.card_faces) {
-                        found.set(face.name.toLowerCase(), info);
+                found.set(card.name.toLowerCase(), defaultInfo);
+
+                // Index each face by name — use face-specific data only for
+                // layouts where both sides are independently castable
+                if (faces) {
+                    const independentFaces = card.layout === 'split'
+                        || card.layout === 'modal_dfc';
+                    for (const face of faces) {
+                        found.set(face.name.toLowerCase(), independentFaces
+                            ? { name: face.name, typeLine: face.type_line, manaCost: face.mana_cost || '' }
+                            : defaultInfo);
                     }
                 }
+
                 if (card.color_identity) {
                     for (const c of card.color_identity) {
                         allColorIdentity.add(c);
