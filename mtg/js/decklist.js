@@ -84,11 +84,26 @@ export async function fetchCardTypes(cards) {
 
         if (data.data) {
             for (const card of data.data) {
-                found.set(card.name.toLowerCase(), {
-                    name: card.name,
+                // For double-faced cards, mana_cost lives on card_faces, not root
+                const manaCost = card.mana_cost
+                    || (card.card_faces && card.card_faces[0]?.mana_cost)
+                    || '';
+                // Use front face name for DFCs (matches how players write decklists)
+                const displayName = card.card_faces
+                    ? card.card_faces[0].name
+                    : card.name;
+                const info = {
+                    name: displayName,
                     typeLine: card.type_line,
-                    manaCost: card.mana_cost || ''
-                });
+                    manaCost
+                };
+                found.set(card.name.toLowerCase(), info);
+                // Also index by each face name so user input matches either face
+                if (card.card_faces) {
+                    for (const face of card.card_faces) {
+                        found.set(face.name.toLowerCase(), info);
+                    }
+                }
                 if (card.color_identity) {
                     for (const c of card.color_identity) {
                         allColorIdentity.add(c);
