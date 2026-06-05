@@ -10,11 +10,19 @@ const symbolCache = new Map();
 /** Load a single mana symbol SVG by key (e.g. "W", "2", "B/P"). Returns a cached Promise<Image|null>. */
 export function loadSymbol(key) {
     if (symbolCache.has(key)) return symbolCache.get(key);
+    // Hybrid/phyrexian keys contain "/" (e.g. "W/U", "B/P") — strip the slash for local filenames
+    const filename = key.replace('/', '');
     const promise = new Promise(resolve => {
         const img = new Image();
         img.onload = () => resolve(img);
-        img.onerror = () => resolve(null); // gracefully skip missing symbols
-        img.src = '/mtg/symbols/' + encodeURIComponent(key) + '.svg';
+        img.onerror = () => {
+            // Fall back to Scryfall CDN for symbols not hosted locally
+            const fallback = new Image();
+            fallback.onload = () => resolve(fallback);
+            fallback.onerror = () => resolve(null);
+            fallback.src = 'https://svgs.scryfall.io/card-symbols/' + filename + '.svg';
+        };
+        img.src = '/mtg/symbols/' + filename + '.svg';
     });
     symbolCache.set(key, promise);
     return promise;
