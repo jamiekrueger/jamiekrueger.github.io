@@ -62,6 +62,7 @@ export function bestSizeOffset(groups, { showTitle = true } = {}) {
  */
 export async function renderPackingList(groups, title, canvas, { showTitle = true } = {}) {
     const ctx = canvas.getContext('2d');
+    ctx.setTransform(3, 0, 0, 3, 0, 0);
 
     await document.fonts.ready;
     const symbolMap = await preloadSymbols(groups);

@@ -31,17 +31,25 @@ export async function renderThemeCard(canvas, cropperInstance, selectedColors, t
     const colors = ['W', 'U', 'B', 'R', 'G'].filter(c => selectedColors.has(c));
     const symbolMap = await resolveSymbols(colors);
 
-    // Draw the cropped artwork, filling the entire card
+    // Use identity transform for direct canvas-pixel drawing so the image fill
+    // works reliably regardless of scale.
     const { srcX, srcY, srcW, srcH } = cropperInstance.getCropRect();
-    ctx.clearRect(0, 0, CARD_W, CARD_H);
-    ctx.drawImage(cropperInstance.img, srcX, srcY, srcW, srcH, 0, 0, CARD_W, CARD_H);
+    const scale = canvas.width / CARD_W;
+    const borderPx = Math.round(BORDER * scale);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-    // Black border on all four edges
+    // Black border: fill entire canvas, then draw artwork into the inner area only.
+    // getCropRect() is calibrated to the viewport (inner area without border), so
+    // drawing to the inner area matches the preview exactly.
     ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, CARD_W, BORDER);
-    ctx.fillRect(0, CARD_H - BORDER, CARD_W, BORDER);
-    ctx.fillRect(0, 0, BORDER, CARD_H);
-    ctx.fillRect(CARD_W - BORDER, 0, BORDER, CARD_H);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(cropperInstance.img, srcX, srcY, srcW, srcH,
+        borderPx, borderPx,
+        canvas.width - borderPx * 2, canvas.height - borderPx * 2);
+
+    // All overlay drawing uses the scale transform so coordinates stay in
+    // the original CARD_W/CARD_H space.
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
     // --- Name bar + gradient layout (matches official Jumpstart theme cards) ---
     // Both the name bar and gradient zone are the same height (ZONE_RATIO of inner area).
