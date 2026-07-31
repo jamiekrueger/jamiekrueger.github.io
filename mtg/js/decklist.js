@@ -53,7 +53,12 @@ export function parseDecklist(raw) {
  * Sends requests in batches of 75 (Scryfall's collection endpoint limit)
  * with a 100 ms delay between batches to respect rate limits.
  *
- * Returns { found: [...cards with metadata], notFound: [names], colorIdentity: Set }
+ * Returns {
+ *   found: [...cards with metadata],
+ *   notFound: [names],
+ *   colorIdentity: Set,
+ *   relatedParts: [...tokens and emblems]
+ * }
  */
 export async function fetchCardTypes(cards) {
     const names = [...new Set(cards.map(c => c.name))];
@@ -61,6 +66,7 @@ export async function fetchCardTypes(cards) {
     const found = new Map();
     const notFound = [];
     const allColorIdentity = new Set();
+    const relatedPartIds = new Set();
 
     for (let i = 0; i < names.length; i += BATCH_SIZE) {
         if (i > 0) await sleep(100); // rate-limit between batches
@@ -111,6 +117,14 @@ export async function fetchCardTypes(cards) {
                         allColorIdentity.add(c);
                     }
                 }
+
+                if (card.all_parts) {
+                    for (const part of card.all_parts) {
+                        // Scryfall uses the "token" component for both tokens
+                        // and emblems associated with a card.
+                        if (part.component === 'token') relatedPartIds.add(part.id);
+                    }
+                }
             }
         }
 
@@ -121,14 +135,79 @@ export async function fetchCardTypes(cards) {
         }
     }
 
+    const relatedParts = await fetchRelatedParts([...relatedPartIds]);
+
     return {
         found: cards.filter(c => found.has(c.name.toLowerCase())).map(c => {
             const info = found.get(c.name.toLowerCase());
             return { ...c, name: info.name, typeLine: info.typeLine, manaCost: info.manaCost };
         }),
         notFound,
-        colorIdentity: allColorIdentity
+        colorIdentity: allColorIdentity,
+        relatedParts
     };
+}
+
+/**
+ * Fetch full token/emblem objects so equivalent printings can be deduplicated
+ * by Oracle identity and the rendered names can include useful characteristics.
+ */
+async function fetchRelatedParts(ids) {
+    const BATCH_SIZE = 75;
+    const parts = new Map();
+
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        // This always follows at least one deck-card request.
+        await sleep(100);
+
+        const resp = await fetch('https://api.scryfall.com/cards/collection', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                identifiers: ids.slice(i, i + BATCH_SIZE).map(id => ({ id }))
+            })
+        });
+
+        if (!resp.ok) {
+            throw new Error('Scryfall API returned status ' + resp.status);
+        }
+
+        const data = await resp.json();
+        for (const card of data.data || []) {
+            const key = card.oracle_id || [
+                card.name,
+                card.type_line,
+                card.power,
+                card.toughness,
+                card.oracle_text
+            ].join('|');
+
+            if (!parts.has(key)) {
+                parts.set(key, {
+                    name: formatRelatedPartName(card),
+                    qty: 1,
+                    showQty: false,
+                    typeLine: card.type_line,
+                    manaCost: ''
+                });
+            }
+        }
+    }
+
+    return [...parts.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function formatRelatedPartName(card) {
+    const details = [];
+    if (card.power != null && card.toughness != null) {
+        details.push(card.power + '/' + card.toughness);
+    }
+    if (card.keywords?.length) {
+        details.push(card.keywords.join(', '));
+    }
+    return details.length > 0
+        ? card.name + ' (' + details.join(', ') + ')'
+        : card.name;
 }
 
 /**

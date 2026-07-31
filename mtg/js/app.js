@@ -31,6 +31,7 @@ const packingView = document.getElementById('packing-view');
 const packingEditBtn = document.getElementById('packing-edit-btn');
 const packingDownload = document.getElementById('packing-download');
 const packingShowTitleCheck = document.getElementById('packing-show-title');
+const packingRelatedPartsCheck = document.getElementById('packing-related-parts');
 
 // Theme card
 const themeCanvas = document.getElementById('theme-canvas');
@@ -57,9 +58,17 @@ function getThemeName(fallback = '') {
 
 /* ===== Packing Edit / View Toggle ===== */
 // Toggles between the decklist textarea (edit) and the rendered card (view).
-// lastPackingGroups caches the most recent grouped card data so the card
-// can be re-rendered when the theme name or "show title" option changes.
+// Cache the most recent grouped card data and its related tokens/emblems so
+// display options can re-render the card without another Scryfall lookup.
 let lastPackingGroups = null;
+let lastRelatedParts = [];
+
+function visiblePackingGroups() {
+    if (!packingRelatedPartsCheck.checked || lastRelatedParts.length === 0) {
+        return lastPackingGroups;
+    }
+    return [...lastPackingGroups, ['Tokens & Emblems', lastRelatedParts]];
+}
 
 function showPackingView() {
     packingEdit.classList.add('hidden');
@@ -122,6 +131,7 @@ themeInput.addEventListener('input', () => {
 });
 
 packingShowTitleCheck.addEventListener('change', refreshPackingIfVisible);
+packingRelatedPartsCheck.addEventListener('change', refreshPackingIfVisible);
 
 /* ===== Gradient Toggle ===== */
 themeGradientCheck.addEventListener('change', () => {
@@ -240,7 +250,7 @@ const sheet = initSheet({
 // a data URL. Used when adding cards to the print sheet or downloading.
 
 async function snapshotPackingCard() {
-    await renderPackingList(lastPackingGroups, getThemeName('Packing List'), packingCanvas, { showTitle: packingShowTitleCheck.checked });
+    await renderPackingList(visiblePackingGroups(), getThemeName('Packing List'), packingCanvas, { showTitle: packingShowTitleCheck.checked });
     return packingCanvas.toDataURL('image/png');
 }
 
@@ -308,7 +318,7 @@ async function generatePackingList(themeName) {
         return { error: true };
     }
 
-    const { found, notFound, colorIdentity } = await fetchCardTypes(cards);
+    const { found, notFound, colorIdentity, relatedParts } = await fetchCardTypes(cards);
 
     if (found.length === 0) {
         showStatus('None of the cards were found on Scryfall. Check spelling and try again.', 'error');
@@ -327,8 +337,10 @@ async function generatePackingList(themeName) {
 
     const groups = groupByType(found, notFound, cards);
     lastPackingGroups = groups;
+    lastRelatedParts = relatedParts;
+    packingRelatedPartsCheck.disabled = relatedParts.length === 0;
 
-    const overflow = await renderPackingList(groups, themeName || 'Packing List', packingCanvas, { showTitle: packingShowTitleCheck.checked });
+    const overflow = await renderPackingList(visiblePackingGroups(), themeName || 'Packing List', packingCanvas, { showTitle: packingShowTitleCheck.checked });
 
     showPackingView();
     packingDownload.href = packingCanvas.toDataURL('image/png');

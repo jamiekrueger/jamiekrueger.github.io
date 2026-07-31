@@ -155,12 +155,15 @@ export async function renderPackingList(groups, title, canvas, { showTitle = tru
                 ? symbols.length * (SYM_SIZE + SYM_PAD) - SYM_PAD
                 : 0;
 
-            // Quantity (bold)
-            const qtyStr = card.qty + ' ';
-            ctx.font = 'bold ' + BODY_SIZE + 'px ' + FONT_BODY;
-            ctx.fillStyle = PACK.COLOR_TEXT;
-            ctx.fillText(qtyStr, MARGIN_X + PACK.CELL_PAD, y);
-            const qtyWidth = ctx.measureText(qtyStr).width;
+            // Quantity (bold). Supplemental token/emblem rows omit it.
+            let qtyWidth = 0;
+            if (card.showQty !== false) {
+                const qtyStr = card.qty + ' ';
+                ctx.font = 'bold ' + BODY_SIZE + 'px ' + FONT_BODY;
+                ctx.fillStyle = PACK.COLOR_TEXT;
+                ctx.fillText(qtyStr, MARGIN_X + PACK.CELL_PAD, y);
+                qtyWidth = ctx.measureText(qtyStr).width;
+            }
 
             // Card name (regular weight, truncated with "..." if needed)
             ctx.font = BODY_SIZE + 'px ' + FONT_BODY;
