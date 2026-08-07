@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5JX57ZTEZY"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-5JX57ZTEZY');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Hobbit Sealed Pool Builder – jamiekrueger.dev</title>
+    <meta name="description" content="Quickly record a Magic: The Gathering | The Hobbit sealed pool and copy a Draftsim-compatible card list.">
+    <link rel="canonical" href="https://jamiekrueger.dev/mtg/hob/">
+    <link rel="icon" href="/mtg/favicon.svg" type="image/svg+xml">
+    <meta property="og:title" content="The Hobbit Sealed Pool Builder">
+    <meta property="og:description" content="Select cards from The Hobbit and copy a Draftsim-compatible sealed pool list.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://jamiekrueger.dev/mtg/hob/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://api.scryfall.com">
+    <link rel="preconnect" href="https://cards.scryfall.io">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/shared/typography.css">
+    <link rel="stylesheet" href="/shared/nav.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="nav">
+        <a href="/mtg/">&lt; <span class="nav-label">MTG tools</span></a>
+        <h1>HOB Pool Builder</h1>
+    </nav>
+
+    <main class="page-shell">
+        <section class="catalog-panel" aria-labelledby="page-title">
+            <header class="intro">
+                <p class="eyebrow">Magic: The Gathering | The Hobbit</p>
+                <h2 id="page-title">Build your sealed pool</h2>
+                <p>Tap a card to add it, then copy the generated list into Draftsim.</p>
+            </header>
+
+            <div class="toolbar">
+                <label class="search-field" for="card-search">
+                    <span class="sr-only">Search cards</span>
+                    <span aria-hidden="true">⌕</span>
+                    <input id="card-search" type="search" placeholder="Search card name…" autocomplete="off" spellcheck="false">
+                </label>
+                <label>
+                    <span class="sr-only">Filter by color</span>
+                    <select id="color-filter">
+                        <option value="all">All colors</option>
+                        <option value="W">White</option>
+                        <option value="U">Blue</option>
+                        <option value="B">Black</option>
+                        <option value="R">Red</option>
+                        <option value="G">Green</option>
+                        <option value="M">Multicolor</option>
+                        <option value="C">Colorless</option>
+                        <option value="L">Lands</option>
+                    </select>
+                </label>
+                <label>
+                    <span class="sr-only">Sort cards</span>
+                    <select id="sort-order">
+                        <option value="alphabetical">Alphabetical</option>
+                        <option value="mana-value">Mana value</option>
+                    </select>
+                </label>
+                <label class="selected-filter">
+                    <input id="selected-only" type="checkbox">
+                    Selected only
+                </label>
+            </div>
+
+            <div id="catalog-status" class="catalog-status" role="status">Loading The Hobbit card list…</div>
+            <ul id="card-list" class="card-list" aria-label="The Hobbit card checklist"></ul>
+            <p id="empty-state" class="empty-state hidden">No cards match these filters.</p>
+        </section>
+
+        <aside class="pool-panel" aria-labelledby="pool-title">
+            <div class="pool-heading">
+                <div>
+                    <p class="eyebrow">Draftsim format</p>
+                    <h2 id="pool-title">Your pool</h2>
+                </div>
+                <div class="pool-counts" aria-live="polite">
+                    <strong id="card-total">0</strong> cards
+                    <span><strong id="unique-total">0</strong> unique</span>
+                </div>
+            </div>
+
+            <textarea id="pool-output" readonly spellcheck="false" aria-label="Generated sealed pool list" placeholder="Select cards to build your pool."></textarea>
+            <div class="pool-actions">
+                <button id="copy-button" class="btn btn-primary" type="button" disabled>Copy list</button>
+                <button id="download-button" class="btn" type="button" disabled>Download</button>
+                <button id="clear-button" class="btn btn-danger" type="button" disabled>Clear</button>
+            </div>
+            <a class="draftsim-link" href="https://draftsim.com/upload-sealed-deck.php" target="_blank" rel="noopener noreferrer">
+                Open Draftsim sealed deck uploader <span aria-hidden="true">↗</span>
+            </a>
+            <p id="copy-status" class="copy-status" aria-live="polite"></p>
+            <p class="pool-note">Selections are saved in this browser. Card data and images are provided by Scryfall.</p>
+        </aside>
+    </main>
+
+    <template id="card-row-template">
+        <li class="card-row">
+            <button class="card-identity" type="button">
+                <img class="card-image" alt="" loading="lazy" width="56" height="78">
+                <span class="card-details">
+                    <strong class="card-name"></strong>
+                    <span class="card-meta"></span>
+                </span>
+            </button>
+            <div class="quantity-control">
+                <button class="quantity-button decrement" type="button" aria-label="Remove one">−</button>
+                <input class="quantity-input" type="number" min="0" max="99" value="0" inputmode="numeric" aria-label="Quantity">
+                <button class="quantity-button increment" type="button" aria-label="Add one">+</button>
+            </div>
+        </li>
+    </template>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
